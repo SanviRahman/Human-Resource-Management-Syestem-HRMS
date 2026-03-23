@@ -25,11 +25,11 @@
                 </div>
             @endif
 
-            <form method="POST" action="{{ route('login') }}">
+            <form method="POST" action="{{ route('login.submit') }}">
                 @csrf
                 
                 <div class="mb-3">
-                    <label for="employeeID" class="form-label fw-semibold">Employee ID</label>
+                    <label for="employeeID" class="form-label fw-semibold">Admin/HR/Employee ID</label>
                     <input type="text" name="employeeID" id="employeeID" class="form-control form-control-lg" value="{{ old('employeeID') }}" placeholder="Enter your ID" required autofocus>
                 </div>
 
@@ -40,7 +40,7 @@
 
                 <div class="d-grid">
                     <button type="submit" class="btn btn-primary btn-lg fw-bold">
-                        Login Korun
+                        Login
                     </button>
                 </div>
             </form>

@@ -1,12 +1,12 @@
 <?php
+namespace App\Http\Controllers\Auth;
 
-namespace App\Http\Controllers;
-
+use App\Http\Controllers\Controller;
+use Http\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\User;
 
-class AuthController extends Controller
+class AuthenticController extends Controller
 {
     // Login Form dekhonor jonno
     public function showLogin()
@@ -17,26 +17,29 @@ class AuthController extends Controller
     // Login Process korar jonno
     public function login(Request $request)
     {
-        // Validation check
         $credentials = $request->validate([
             'employeeID' => ['required', 'string'],
-            'password' => ['required'],
+            'password'   => ['required'],
         ]);
 
-        // Authentication er chesta kora hocche
-        if (Auth::attempt($credentials, $request->boolean('remember'))) {
+        if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
 
-            // Login shofol hole dashboard e redirect
-            return redirect()->intended('admin.dashboard');
+            $role = Auth::user()->role;
+
+            if ($role === 'admin') {
+                return redirect()->route('admin.dashboard');
+            } elseif ($role === 'hr') {
+                return redirect()->route('hr.dashboard');
+            } else {
+                return redirect()->route('dashboard');
+            }
         }
 
-        // Login beartho hole error message
         return back()->withErrors([
             'employeeID' => 'The provided credentials do not match our records.',
         ])->onlyInput('employeeID');
     }
-
     // Logout Process
     public function logout(Request $request)
     {
@@ -45,7 +48,7 @@ class AuthController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect('/login');
+        return redirect('/');
     }
 
 }
