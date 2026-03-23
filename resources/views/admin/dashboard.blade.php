@@ -1113,6 +1113,7 @@
         </div>
     </div>
 
+    <!-- Main Content -->
     <div id="main-content">
         <div class="top-header desktop-top-header">
             <h4 id="page-title">Dashboard</h4>
@@ -1125,7 +1126,7 @@
         <!-- Dashboard Section -->
         <div id="dashboard" class="content-section active">
             <div class="welcome-banner">
-                <h2>Welcome back, Administrator!</h2>
+                <h2>Welcome back, {{ Auth::user()->employeeID }}!</h2>
                 <p>Here's an overview of your team metrics and recent activities.</p>
             </div>
 
@@ -1136,38 +1137,41 @@
                             <div class="metric-title">Total Employees</div>
                             <i class="material-icons-round card-icon icon-blue">groups</i>
                         </div>
-                        <div class="metric-value">248</div>
-                        <div class="metric-trend positive">+12 from last month</div>
+                        <div class="metric-value">{{ $totalEmployees }}</div>
+                        <div class="metric-trend positive">Updated Just Now</div>
                     </div>
                 </div>
+
                 <div class="col-sm-6 col-lg-3">
                     <div class="custom-card">
                         <div class="d-flex justify-content-between align-items-start">
                             <div class="metric-title">Active Employees</div>
                             <i class="material-icons-round card-icon icon-green">trending_up</i>
                         </div>
-                        <div class="metric-value">235</div>
-                        <div class="metric-trend positive">+5 from last month</div>
+                        <div class="metric-value">{{ $activeEmployees }}</div>
+                        <div class="metric-trend positive">Current Status</div>
                     </div>
                 </div>
+
                 <div class="col-sm-6 col-lg-3">
                     <div class="custom-card">
                         <div class="d-flex justify-content-between align-items-start">
                             <div class="metric-title">Pending Leave Requests</div>
                             <i class="material-icons-round card-icon icon-orange">calendar_month</i>
                         </div>
-                        <div class="metric-value">18</div>
-                        <div class="metric-trend negative">-3 from last month</div>
+                        <div class="metric-value">{{ $pendingLeaves }}</div>
+                        <div class="metric-trend negative">Needs Attention</div>
                     </div>
                 </div>
+
                 <div class="col-sm-6 col-lg-3">
                     <div class="custom-card">
                         <div class="d-flex justify-content-between align-items-start">
                             <div class="metric-title">Monthly Payroll</div>
                             <i class="material-icons-round card-icon icon-purple">monetization_on</i>
                         </div>
-                        <div class="metric-value">$425,000</div>
-                        <div class="metric-trend positive">+8% from last month</div>
+                        <div class="metric-value">${{ number_format($monthlyPayroll) }}</div>
+                        <div class="metric-trend positive">This Month</div>
                     </div>
                 </div>
             </div>
@@ -1176,82 +1180,39 @@
                 <div class="col-lg-6">
                     <div class="custom-card">
                         <h6 class="mb-4">Department Overview</h6>
+
+                        @foreach($departments as $dept)
                         <div class="dept-item">
-                            <div class="dept-label"><span>Engineering</span> <span>85 employees</span></div>
+                            <div class="dept-label">
+                                <span>{{ $dept->name }}</span>
+                                <span>{{ $dept->count }} employees</span>
+                            </div>
                             <div class="custom-progress">
-                                <div class="custom-progress-bar" style="width: 85%;"></div>
+                                <div class="custom-progress-bar" style="width: {{ $dept->percentage }}%;"></div>
                             </div>
                         </div>
-                        <div class="dept-item">
-                            <div class="dept-label"><span>Sales</span> <span>62 employees</span></div>
-                            <div class="custom-progress">
-                                <div class="custom-progress-bar" style="width: 62%;"></div>
-                            </div>
-                        </div>
-                        <div class="dept-item">
-                            <div class="dept-label"><span>Marketing</span> <span>38 employees</span></div>
-                            <div class="custom-progress">
-                                <div class="custom-progress-bar" style="width: 38%;"></div>
-                            </div>
-                        </div>
-                        <div class="dept-item">
-                            <div class="dept-label"><span>HR</span> <span>24 employees</span></div>
-                            <div class="custom-progress">
-                                <div class="custom-progress-bar" style="width: 24%;"></div>
-                            </div>
-                        </div>
-                        <div class="dept-item">
-                            <div class="dept-label"><span>Finance</span> <span>19 employees</span></div>
-                            <div class="custom-progress">
-                                <div class="custom-progress-bar" style="width: 19%;"></div>
-                            </div>
-                        </div>
+                        @endforeach
+
                     </div>
                 </div>
 
                 <div class="col-lg-6">
                     <div class="custom-card">
                         <h6 class="mb-4">Recent Activities</h6>
+
+                        @forelse($recentActivities as $activity)
                         <div class="activity-item">
-                            <div class="activity-dot dot-green"></div>
+                            <div class="activity-dot {{ $activity->color }}"></div>
                             <div class="activity-content">
-                                <p class="activity-title">New employee onboarded</p>
-                                <p class="activity-desc">Sarah Johnson</p>
+                                <p class="activity-title">{{ $activity->title }}</p>
+                                <p class="activity-desc">{{ $activity->desc }}</p>
                             </div>
-                            <div class="activity-time">2 hours ago</div>
+                            <div class="activity-time">{{ $activity->time }}</div>
                         </div>
-                        <div class="activity-item">
-                            <div class="activity-dot dot-blue"></div>
-                            <div class="activity-content">
-                                <p class="activity-title">Leave request approved</p>
-                                <p class="activity-desc">Mike Chen</p>
-                            </div>
-                            <div class="activity-time">4 hours ago</div>
-                        </div>
-                        <div class="activity-item">
-                            <div class="activity-dot dot-green"></div>
-                            <div class="activity-content">
-                                <p class="activity-title">Payroll processed</p>
-                                <p class="activity-desc">System</p>
-                            </div>
-                            <div class="activity-time">1 day ago</div>
-                        </div>
-                        <div class="activity-item">
-                            <div class="activity-dot dot-yellow"></div>
-                            <div class="activity-content">
-                                <p class="activity-title">Performance review submitted</p>
-                                <p class="activity-desc">Alex Rivera</p>
-                            </div>
-                            <div class="activity-time">2 days ago</div>
-                        </div>
-                        <div class="activity-item">
-                            <div class="activity-dot dot-blue"></div>
-                            <div class="activity-content">
-                                <p class="activity-title">New job posting created</p>
-                                <p class="activity-desc">HR Team</p>
-                            </div>
-                            <div class="activity-time">3 days ago</div>
-                        </div>
+                        @empty
+                        <p class="text-muted small">No recent activities found.</p>
+                        @endforelse
+
                     </div>
                 </div>
             </div>
@@ -1260,27 +1221,19 @@
                 <div class="col-12">
                     <div class="custom-card">
                         <h6 class="mb-3">Upcoming Events & Reminders</h6>
-                        <div class="event-card event-blue">
+
+                        @forelse($upcomingEvents as $event)
+                        <div class="event-card {{ $event->color_class }}">
                             <div>
-                                <p class="event-title">Team Meeting</p>
-                                <p class="event-subtitle">Engineering Department</p>
+                                <p class="event-title">{{ $event->title }}</p>
+                                <p class="event-subtitle">{{ $event->subtitle }}</p>
                             </div>
-                            <div class="event-time">Tomorrow 2:00 PM</div>
+                            <div class="event-time">{{ $event->time }}</div>
                         </div>
-                        <div class="event-card event-green">
-                            <div>
-                                <p class="event-title">Performance Review Deadline</p>
-                                <p class="event-subtitle">Q1 2024 Reviews</p>
-                            </div>
-                            <div class="event-time">3 days left</div>
-                        </div>
-                        <div class="event-card event-orange">
-                            <div>
-                                <p class="event-title">Payroll Processing</p>
-                                <p class="event-subtitle">Monthly salary disbursement</p>
-                            </div>
-                            <div class="event-time">Jan 30, 2024</div>
-                        </div>
+                        @empty
+                        <p class="text-muted small">No upcoming events at the moment.</p>
+                        @endforelse
+
                     </div>
                 </div>
             </div>
