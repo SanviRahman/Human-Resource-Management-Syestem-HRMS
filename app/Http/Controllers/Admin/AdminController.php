@@ -11,7 +11,7 @@ use App\Models\Event;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
-class DashboardController extends Controller
+class AdminController extends Controller
 {
     public function index()
     {
