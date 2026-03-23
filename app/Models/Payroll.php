@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Payroll extends Model
 {
+    protected $table = 'payrolls';
+
     protected $fillable = [
         'employee_id',
         'payroll_month',
@@ -14,6 +16,7 @@ class Payroll extends Model
         'deduction',
         'tax',
         'net_pay',
+        'status',
     ];
 
     protected $casts = [
