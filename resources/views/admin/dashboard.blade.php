@@ -1126,7 +1126,7 @@
         <!-- Dashboard Section -->
         <div id="dashboard" class="content-section active">
             <div class="welcome-banner">
-                <h2>Welcome back, {{ Auth::user()->employeeID }}!</h2>
+                <h2>Welcome back, Administrator!</h2>
                 <p>Here's an overview of your team metrics and recent activities.</p>
             </div>
 
@@ -1138,7 +1138,7 @@
                             <i class="material-icons-round card-icon icon-blue">groups</i>
                         </div>
                         <div class="metric-value">{{ $totalEmployees }}</div>
-                        <div class="metric-trend positive">Updated Just Now</div>
+                        <div class="metric-trend positive">+{{ $newEmployeesThisMonth }} joined this month</div>
                     </div>
                 </div>
 
@@ -1149,7 +1149,7 @@
                             <i class="material-icons-round card-icon icon-green">trending_up</i>
                         </div>
                         <div class="metric-value">{{ $activeEmployees }}</div>
-                        <div class="metric-trend positive">Current Status</div>
+                        <div class="metric-trend positive">{{ $activePercentage }}% of total employees</div>
                     </div>
                 </div>
 
@@ -1159,8 +1159,8 @@
                             <div class="metric-title">Pending Leave Requests</div>
                             <i class="material-icons-round card-icon icon-orange">calendar_month</i>
                         </div>
-                        <div class="metric-value">{{ $pendingLeaves }}</div>
-                        <div class="metric-trend negative">Needs Attention</div>
+                        <div class="metric-value">{{ $pendingLeaveRequests }}</div>
+                        <div class="metric-trend negative">{{ $approvedLeavesThisMonth }} approved this month</div>
                     </div>
                 </div>
 
@@ -1170,8 +1170,8 @@
                             <div class="metric-title">Monthly Payroll</div>
                             <i class="material-icons-round card-icon icon-purple">monetization_on</i>
                         </div>
-                        <div class="metric-value">${{ number_format($monthlyPayroll) }}</div>
-                        <div class="metric-trend positive">This Month</div>
+                        <div class="metric-value">${{ number_format($monthlyPayroll, 2) }}</div>
+                        <div class="metric-trend positive">{{ now()->format('F Y') }}</div>
                     </div>
                 </div>
             </div>
@@ -1181,18 +1181,23 @@
                     <div class="custom-card">
                         <h6 class="mb-4">Department Overview</h6>
 
-                        @foreach($departments as $dept)
+                        @forelse($departmentOverview as $department)
+                        @php
+                        $width = $maxDepartmentCount > 0 ? ($department->total / $maxDepartmentCount) * 100 : 0;
+                        @endphp
+
                         <div class="dept-item">
                             <div class="dept-label">
-                                <span>{{ $dept->name }}</span>
-                                <span>{{ $dept->count }} employees</span>
+                                <span>{{ $department->department }}</span>
+                                <span>{{ $department->total }} employees</span>
                             </div>
                             <div class="custom-progress">
-                                <div class="custom-progress-bar" style="width: {{ $dept->percentage }}%;"></div>
+                                <div class="custom-progress-bar" style="width: {{ $width }}%;"></div>
                             </div>
                         </div>
-                        @endforeach
-
+                        @empty
+                        <p class="text-muted mb-0">No department data found.</p>
+                        @endforelse
                     </div>
                 </div>
 
@@ -1202,17 +1207,16 @@
 
                         @forelse($recentActivities as $activity)
                         <div class="activity-item">
-                            <div class="activity-dot {{ $activity->color }}"></div>
+                            <div class="activity-dot {{ $activity['dot_class'] }}"></div>
                             <div class="activity-content">
-                                <p class="activity-title">{{ $activity->title }}</p>
-                                <p class="activity-desc">{{ $activity->desc }}</p>
+                                <p class="activity-title">{{ $activity['title'] }}</p>
+                                <p class="activity-desc">{{ $activity['desc'] }}</p>
                             </div>
-                            <div class="activity-time">{{ $activity->time }}</div>
+                            <div class="activity-time">{{ $activity['time'] }}</div>
                         </div>
                         @empty
-                        <p class="text-muted small">No recent activities found.</p>
+                        <p class="text-muted mb-0">No recent activities found.</p>
                         @endforelse
-
                     </div>
                 </div>
             </div>
@@ -1223,17 +1227,16 @@
                         <h6 class="mb-3">Upcoming Events & Reminders</h6>
 
                         @forelse($upcomingEvents as $event)
-                        <div class="event-card {{ $event->color_class }}">
+                        <div class="event-card {{ $event['bg_class'] }}">
                             <div>
-                                <p class="event-title">{{ $event->title }}</p>
-                                <p class="event-subtitle">{{ $event->subtitle }}</p>
+                                <p class="event-title">{{ $event['title'] }}</p>
+                                <p class="event-subtitle">{{ $event['subtitle'] }}</p>
                             </div>
-                            <div class="event-time">{{ $event->time }}</div>
+                            <div class="event-time">{{ $event['time'] }}</div>
                         </div>
                         @empty
-                        <p class="text-muted small">No upcoming events at the moment.</p>
+                        <p class="text-muted mb-0">No upcoming events found.</p>
                         @endforelse
-
                     </div>
                 </div>
             </div>

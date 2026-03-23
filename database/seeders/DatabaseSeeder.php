@@ -1,8 +1,6 @@
 <?php
-
 namespace Database\Seeders;
 
-use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -23,6 +21,10 @@ class DatabaseSeeder extends Seeder
         // ]);
 
         // call the UserSeeder
-        $this->call(UserSeeder::class);
+        $this->call([
+            UserSeeder::class,
+            ActivitySeeder::class,
+            EventSeeder::class,
+        ]);
     }
 }
