@@ -1686,6 +1686,7 @@
                 </div>
             </div>
         </div>
+        
         <!-- Payroll Section -->
         <div id="payroll" class="content-section">
 
