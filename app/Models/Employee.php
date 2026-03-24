@@ -16,4 +16,8 @@ class Employee extends Model
         'status',
         'joining_date',
     ];
+
+    protected $casts = [
+        'joining_date' => 'date',
+    ];
 }

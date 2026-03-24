@@ -1073,28 +1073,39 @@
             </button>
         </div>
         <div class="sidebar-nav">
-            <a class="nav-item-link dashboard-icon active" onclick="switchTab('dashboard', this)">
+            <a class="nav-item-link dashboard-icon active" data-section="dashboard"
+                onclick="switchTab('dashboard', this)">
                 <i class="material-icons-round">bar_chart</i> Dashboard
             </a>
-            <a class="nav-item-link employee-icon" onclick="switchTab('employee', this)">
+
+            <a class="nav-item-link employee-icon" data-section="employee" onclick="switchTab('employee', this)">
                 <i class="material-icons-round">groups</i> Employee Management
             </a>
-            <a class="nav-item-link attendance-icon" onclick="switchTab('attendance', this)">
+
+            <a class="nav-item-link attendance-icon" data-section="attendance" onclick="switchTab('attendance', this)">
                 <i class="material-icons-round">calendar_month</i> Attendance & Leave
             </a>
-            <a class="nav-item-link payroll-icon" onclick="switchTab('payroll', this)">
+
+            <a class="nav-item-link payroll-icon" data-section="payroll" onclick="switchTab('payroll', this)">
                 <i class="material-icons-round">monetization_on</i> Payroll Management
             </a>
-            <a class="nav-item-link recruitment-icon" onclick="switchTab('recruitment', this)">
+
+            <a class="nav-item-link recruitment-icon" data-section="recruitment"
+                onclick="switchTab('recruitment', this)">
                 <i class="material-icons-round">track_changes</i> Recruitment
             </a>
-            <a class="nav-item-link performance-icon" onclick="switchTab('performance', this)">
+
+            <a class="nav-item-link performance-icon" data-section="performance"
+                onclick="switchTab('performance', this)">
                 <i class="material-icons-round">trending_up</i> Performance Management
             </a>
-            <a class="nav-item-link notifications-icon" onclick="switchTab('notifications', this)">
+
+            <a class="nav-item-link notifications-icon" data-section="notifications"
+                onclick="switchTab('notifications', this)">
                 <i class="material-icons-round">notifications</i> Notifications
             </a>
-            <a class="nav-item-link settings-icon" onclick="switchTab('settings', this)">
+
+            <a class="nav-item-link settings-icon" data-section="settings" onclick="switchTab('settings', this)">
                 <i class="material-icons-round">settings</i> Admin Settings
             </a>
             <a class="nav-item-link logout-icon">
@@ -1244,27 +1255,47 @@
 
         <!-- Employee Section -->
         <div id="employee" class="content-section">
+            @if(session('success'))
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                {{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            @endif
 
             <div class="d-flex justify-content-between align-items-center mb-4 action-bar-mobile">
-                <div class="d-flex gap-3 flex-wrap flex-grow-1">
+                <form method="GET" action="{{ route('admin.dashboard') }}" class="d-flex gap-3 flex-wrap flex-grow-1">
+                    <input type="hidden" name="tab" value="employee">
+
                     <div class="search-input-group" style="width: 280px; max-width: 100%;">
                         <i class="material-icons-round">search</i>
-                        <input type="text" placeholder="Search employees...">
+                        <input type="text" name="search" value="{{ request('search') }}"
+                            placeholder="Search employees...">
                     </div>
-                    <select class="form-select filter-select" style="width: 180px;">
-                        <option>All Departments</option>
-                        <option>Engineering</option>
-                        <option>Marketing</option>
-                        <option>Sales</option>
-                        <option>HR</option>
-                        <option>Finance</option>
+
+                    <select class="form-select filter-select" name="department" style="width: 180px;">
+                        <option value="all">All Departments</option>
+                        @foreach($departments as $dept)
+                        <option value="{{ $dept }}" {{ request('department') == $dept ? 'selected' : '' }}>
+                            {{ $dept }}
+                        </option>
+                        @endforeach
                     </select>
-                </div>
-                <div class="d-flex gap-2">
-                    <button class="btn btn-outline-dark d-flex align-items-center gap-2 px-3">
-                        <i class="material-icons-round" style="font-size: 18px;">download</i> Export
-                    </button>
-                    <button class="btn btn-dark d-flex align-items-center gap-2 px-3">
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-outline-dark d-flex align-items-center gap-2 px-3">
+                            <i class="material-icons-round" style="font-size: 18px;">filter_alt</i> Filter
+                        </button>
+
+                        <a href="{{ route('admin.dashboard', ['tab' => 'employee']) }}"
+                            class="btn btn-outline-secondary d-flex align-items-center gap-2 px-3">
+                            <i class="material-icons-round" style="font-size: 18px;">restart_alt</i> Reset
+                        </a>
+                    </div>
+                </form>
+
+                <div class="d-flex gap-2 mt-2 mt-lg-0">
+                    <button type="button" class="btn btn-dark d-flex align-items-center gap-2 px-3"
+                        data-bs-toggle="modal" data-bs-target="#createEmployeeModal">
                         <i class="material-icons-round" style="font-size: 18px;">add</i> Add Employee
                     </button>
                 </div>
@@ -1273,32 +1304,35 @@
             <div class="row g-3 mb-2">
                 <div class="col-sm-6 col-lg-3">
                     <div class="emp-summary-card">
-                        <p class="emp-summary-value text-dark">248</p>
+                        <p class="emp-summary-value text-dark">{{ $employeeStats['total'] }}</p>
                         <p class="emp-summary-label">Total Employees</p>
                     </div>
                 </div>
                 <div class="col-sm-6 col-lg-3">
                     <div class="emp-summary-card">
-                        <p class="emp-summary-value text-green">235</p>
+                        <p class="emp-summary-value text-green">{{ $employeeStats['active'] }}</p>
                         <p class="emp-summary-label">Active</p>
                     </div>
                 </div>
                 <div class="col-sm-6 col-lg-3">
                     <div class="emp-summary-card">
-                        <p class="emp-summary-value text-orange">8</p>
+                        <p class="emp-summary-value text-orange">{{ $employeeStats['probation'] }}</p>
                         <p class="emp-summary-label">On Probation</p>
                     </div>
                 </div>
                 <div class="col-sm-6 col-lg-3">
                     <div class="emp-summary-card">
-                        <p class="emp-summary-value text-red">5</p>
+                        <p class="emp-summary-value text-red">{{ $employeeStats['inactive'] }}</p>
                         <p class="emp-summary-label">Inactive</p>
                     </div>
                 </div>
             </div>
 
             <div class="custom-card">
-                <h6 class="mb-4 text-dark" style="font-weight: 600;">Employee Directory (5 employees)</h6>
+                <h6 class="mb-4 text-dark" style="font-weight: 600;">
+                    Employee Directory ({{ $employees->total() }} employees)
+                </h6>
+
                 <div class="table-responsive">
                     <table class="table employee-table mb-0">
                         <thead>
@@ -1313,93 +1347,60 @@
                             </tr>
                         </thead>
                         <tbody>
+                            @forelse($employees as $employee)
                             <tr>
                                 <td>
-                                    <p class="emp-name">John Doe</p>
-                                    <p class="emp-email">john.doe@company.com</p>
+                                    <p class="emp-name">{{ $employee->name }}</p>
+                                    <p class="emp-email">{{ $employee->email }}</p>
                                 </td>
-                                <td>EMP001</td>
-                                <td>Engineering</td>
-                                <td>Senior Developer</td>
-                                <td>3/15/2022</td>
-                                <td><span class="status-badge status-active">Active</span></td>
+                                <td>EMP{{ str_pad($employee->id, 3, '0', STR_PAD_LEFT) }}</td>
+                                <td>{{ $employee->department ?? 'N/A' }}</td>
+                                <td>{{ $employee->designation ?? 'N/A' }}</td>
+                                <td>{{ $employee->joining_date ? $employee->joining_date->format('n/j/Y') : 'N/A' }}
+                                </td>
                                 <td>
-                                    <button class="action-btn edit-btn"><i
-                                            class="material-icons-round">edit_square</i></button>
-                                    <button class="action-btn delete-btn"><i
-                                            class="material-icons-round">delete_outline</i></button>
+                                    @if($employee->status === 'active')
+                                    <span class="status-badge status-active">Active</span>
+                                    @elseif($employee->status === 'probation')
+                                    <span class="status-badge status-probation">Probation</span>
+                                    @else
+                                    <span class="status-badge status-inactive">Inactive</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    <button type="button" class="action-btn edit-btn editEmployeeBtn"
+                                        data-bs-toggle="modal" data-bs-target="#editEmployeeModal"
+                                        data-id="{{ $employee->id }}" data-name="{{ $employee->name }}"
+                                        data-email="{{ $employee->email }}"
+                                        data-department="{{ $employee->department }}"
+                                        data-designation="{{ $employee->designation }}"
+                                        data-status="{{ $employee->status }}"
+                                        data-joining-date="{{ $employee->joining_date ? $employee->joining_date->format('Y-m-d') : '' }}">
+                                        <i class="material-icons-round">edit</i>
+                                    </button>
+
+                                    <form action="{{ route('admin.employees.destroy', $employee->id) }}" method="POST"
+                                        class="d-inline"
+                                        onsubmit="return confirm('Are you sure you want to delete this employee?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="action-btn delete-btn">
+                                            <i class="material-icons-round">delete_outline</i>
+                                        </button>
+                                    </form>
                                 </td>
                             </tr>
+                            @empty
                             <tr>
-                                <td>
-                                    <p class="emp-name">Sarah Johnson</p>
-                                    <p class="emp-email">sarah.johnson@company.com</p>
-                                </td>
-                                <td>EMP002</td>
-                                <td>Marketing</td>
-                                <td>Marketing Manager</td>
-                                <td>11/22/2021</td>
-                                <td><span class="status-badge status-active">Active</span></td>
-                                <td>
-                                    <button class="action-btn edit-btn"><i
-                                            class="material-icons-round">edit_square</i></button>
-                                    <button class="action-btn delete-btn"><i
-                                            class="material-icons-round">delete_outline</i></button>
-                                </td>
+                                <td colspan="7" class="text-center text-muted py-4">No employees found.</td>
                             </tr>
-                            <tr>
-                                <td>
-                                    <p class="emp-name">Mike Chen</p>
-                                    <p class="emp-email">mike.chen@company.com</p>
-                                </td>
-                                <td>EMP003</td>
-                                <td>Sales</td>
-                                <td>Sales Representative</td>
-                                <td>1/10/2023</td>
-                                <td><span class="status-badge status-probation">Probation</span></td>
-                                <td>
-                                    <button class="action-btn edit-btn"><i
-                                            class="material-icons-round">edit_square</i></button>
-                                    <button class="action-btn delete-btn"><i
-                                            class="material-icons-round">delete_outline</i></button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <p class="emp-name">Emily Davis</p>
-                                    <p class="emp-email">emily.davis@company.com</p>
-                                </td>
-                                <td>EMP004</td>
-                                <td>HR</td>
-                                <td>HR Specialist</td>
-                                <td>8/5/2020</td>
-                                <td><span class="status-badge status-active">Active</span></td>
-                                <td>
-                                    <button class="action-btn edit-btn"><i
-                                            class="material-icons-round">edit_square</i></button>
-                                    <button class="action-btn delete-btn"><i
-                                            class="material-icons-round">delete_outline</i></button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <p class="emp-name">Alex Rivera</p>
-                                    <p class="emp-email">alex.rivera@company.com</p>
-                                </td>
-                                <td>EMP005</td>
-                                <td>Finance</td>
-                                <td>Financial Analyst</td>
-                                <td>6/18/2022</td>
-                                <td><span class="status-badge status-inactive">Inactive</span></td>
-                                <td>
-                                    <button class="action-btn edit-btn"><i
-                                            class="material-icons-round">edit_square</i></button>
-                                    <button class="action-btn delete-btn"><i
-                                            class="material-icons-round">delete_outline</i></button>
-                                </td>
-                            </tr>
+                            @endforelse
                         </tbody>
                     </table>
+                </div>
+
+                <div class="mt-3">
+                    {{ $employees->appends(request()->query())->links() }}
                 </div>
             </div>
         </div>
@@ -2117,12 +2118,125 @@
 
             </div>
         </div>
+    </div>
 
+    <!-- Create Employee Modal -->
+    <div class="modal fade" id="createEmployeeModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <form action="{{ route('admin.employees.store') }}" method="POST">
+                    @csrf
+
+                    <div class="modal-header">
+                        <h5 class="modal-title">Add Employee</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Name</label>
+                            <input type="text" name="name" class="form-control" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" name="email" class="form-control" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Department</label>
+                            <input type="text" name="department" class="form-control">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Designation</label>
+                            <input type="text" name="designation" class="form-control">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Joining Date</label>
+                            <input type="date" name="joining_date" class="form-control">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Status</label>
+                            <select name="status" class="form-select" required>
+                                <option value="active">Active</option>
+                                <option value="probation">Probation</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-dark">Save Employee</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Employee Modal -->
+    <div class="modal fade" id="editEmployeeModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <form id="editEmployeeForm" method="POST">
+                    @csrf
+                    @method('PUT')
+
+                    <div class="modal-header">
+                        <h5 class="modal-title">Update Employee</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Name</label>
+                            <input type="text" name="name" id="edit_name" class="form-control" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" name="email" id="edit_email" class="form-control" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Department</label>
+                            <input type="text" name="department" id="edit_department" class="form-control">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Designation</label>
+                            <input type="text" name="designation" id="edit_designation" class="form-control">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Joining Date</label>
+                            <input type="date" name="joining_date" id="edit_joining_date" class="form-control">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Status</label>
+                            <select name="status" id="edit_status" class="form-select" required>
+                                <option value="active">Active</option>
+                                <option value="probation">Probation</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-dark">Update Employee</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-    // Sidebar Toggle for Mobile View
     function toggleSidebar() {
         const sidebar = document.getElementById('sidebar');
         const overlay = document.getElementById('sidebar-overlay');
@@ -2130,29 +2244,69 @@
         overlay.style.display = sidebar.classList.contains('show-sidebar') ? 'block' : 'none';
     }
 
-    // Tab Switching Logic
     function switchTab(sectionId, element) {
-        // 1. Update Active Class in Sidebar
         document.querySelectorAll('.nav-item-link').forEach(link => link.classList.remove('active'));
         element.classList.add('active');
 
-        // 2. Update Content Sections
         document.querySelectorAll('.content-section').forEach(sec => sec.classList.remove('active'));
         document.getElementById(sectionId).classList.add('active');
 
-        // 3. Extract Clean Title Text (Ignoring the Icon Text)
         const tempElement = element.cloneNode(true);
         const icon = tempElement.querySelector('.material-icons-round');
-        if (icon) icon.remove(); // Remove icon text from copy
-        const pageTitleText = tempElement.textContent.replace(/\s+/g, ' ').trim(); // Clean up spaces
+        if (icon) icon.remove();
 
-        // 4. Set Header Titles
+        const pageTitleText = tempElement.textContent.replace(/\s+/g, ' ').trim();
         document.getElementById('page-title').innerText = pageTitleText;
         document.getElementById('mobile-page-title').innerText = pageTitleText;
 
-        // 5. Close Sidebar on Mobile if open
+        const url = new URL(window.location.href);
+        url.searchParams.set('tab', sectionId);
+        window.history.replaceState({}, '', url);
+
         if (window.innerWidth < 992) toggleSidebar();
     }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // open tab from query string
+        const urlParams = new URLSearchParams(window.location.search);
+        const activeTab = urlParams.get('tab');
+
+        if (activeTab) {
+            const targetLink = document.querySelector(`.nav-item-link[data-section="${activeTab}"]`);
+            if (targetLink) {
+                switchTab(activeTab, targetLink);
+            }
+        } else {
+            const defaultLink = document.querySelector('.nav-item-link[data-section="dashboard"]');
+            if (defaultLink) {
+                switchTab('dashboard', defaultLink);
+            }
+        }
+
+        // edit modal populate
+        const editButtons = document.querySelectorAll('.editEmployeeBtn');
+        const editForm = document.getElementById('editEmployeeForm');
+
+        editButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const id = this.dataset.id;
+                const name = this.dataset.name;
+                const email = this.dataset.email;
+                const department = this.dataset.department;
+                const designation = this.dataset.designation;
+                const status = this.dataset.status;
+                const joiningDate = this.dataset.joiningDate;
+
+                editForm.action = `/admin/employees/${id}`;
+                document.getElementById('edit_name').value = name ?? '';
+                document.getElementById('edit_email').value = email ?? '';
+                document.getElementById('edit_department').value = department ?? '';
+                document.getElementById('edit_designation').value = designation ?? '';
+                document.getElementById('edit_status').value = status ?? 'active';
+                document.getElementById('edit_joining_date').value = joiningDate ?? '';
+            });
+        });
+    });
     </script>
 </body>
 
