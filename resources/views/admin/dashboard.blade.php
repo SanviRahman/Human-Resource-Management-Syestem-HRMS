@@ -1908,27 +1908,29 @@
                             <h6 class="m-0 fw-bold text-dark">Open Positions</h6>
                         </div>
                         <div class="p-3">
-
+                            @forelse($openPositions as $position)
                             <div class="recruitment-item">
                                 <div class="d-flex justify-content-between align-items-start">
                                     <div>
-                                        <h6 class="fw-bold mb-1 text-dark">Senior Frontend Developer</h6>
-                                        <p class="text-muted small mb-0">Engineering &bull; 12 applicants</p>
+                                        <h6 class="fw-bold mb-1 text-dark">{{ $position->title }}</h6>
+                                        <p class="text-muted small mb-0">
+                                            {{ $position->department ?? 'N/A' }} &bull;
+                                            {{ $position->applications_count }} applicants
+                                        </p>
                                     </div>
+
+                                    @if($position->status === 'active')
                                     <span class="status-badge bg-light-green text-green px-2 py-1">Active</span>
+                                    @elseif($position->status === 'closed')
+                                    <span class="status-badge bg-light text-dark px-2 py-1">Closed</span>
+                                    @else
+                                    <span class="status-badge bg-light text-muted px-2 py-1">Draft</span>
+                                    @endif
                                 </div>
                             </div>
-
-                            <div class="recruitment-item">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <div>
-                                        <h6 class="fw-bold mb-1 text-dark">Marketing Specialist</h6>
-                                        <p class="text-muted small mb-0">Marketing &bull; 8 applicants</p>
-                                    </div>
-                                    <span class="status-badge bg-light-green text-green px-2 py-1">Active</span>
-                                </div>
-                            </div>
-
+                            @empty
+                            <p class="text-muted mb-0">No open positions found.</p>
+                            @endforelse
                         </div>
                     </div>
                 </div>
@@ -1939,19 +1941,19 @@
                             <h6 class="m-0 fw-bold text-dark">Recent Applications</h6>
                         </div>
                         <div class="p-3">
-
+                            @forelse($recentApplications as $application)
                             <div class="recruitment-item bg-light-gray">
-                                <h6 class="fw-bold mb-1 text-dark">Sarah Wilson</h6>
-                                <p class="text-muted small mb-1">Applied for Senior Frontend Developer</p>
-                                <p class="text-muted small mb-0" style="font-size: 0.75rem;">2 hours ago</p>
+                                <h6 class="fw-bold mb-1 text-dark">{{ $application->candidate_name }}</h6>
+                                <p class="text-muted small mb-1">
+                                    Applied for {{ $application->jobPosition->title ?? 'N/A' }}
+                                </p>
+                                <p class="text-muted small mb-0" style="font-size: 0.75rem;">
+                                    {{ $application->created_at?->diffForHumans() }}
+                                </p>
                             </div>
-
-                            <div class="recruitment-item bg-light-gray">
-                                <h6 class="fw-bold mb-1 text-dark">David Chen</h6>
-                                <p class="text-muted small mb-1">Applied for Marketing Specialist</p>
-                                <p class="text-muted small mb-0" style="font-size: 0.75rem;">5 hours ago</p>
-                            </div>
-
+                            @empty
+                            <p class="text-muted mb-0">No recent applications found.</p>
+                            @endforelse
                         </div>
                     </div>
                 </div>
@@ -1962,19 +1964,21 @@
                             <h6 class="m-0 fw-bold text-dark">Upcoming Interviews</h6>
                         </div>
                         <div class="p-3">
-
+                            @forelse($upcomingInterviews as $interview)
                             <div class="recruitment-item bg-light-blue">
-                                <h6 class="fw-bold mb-1 text-dark">Technical Interview</h6>
-                                <p class="text-muted small mb-1">John Smith - Frontend Dev</p>
-                                <p class="text-muted small mb-0" style="font-size: 0.75rem;">Tomorrow 2:00 PM</p>
+                                <h6 class="fw-bold mb-1 text-dark">{{ $interview->title }}</h6>
+                                <p class="text-muted small mb-1">
+                                    {{ $interview->jobApplication->candidate_name ?? 'N/A' }}
+                                    -
+                                    {{ $interview->jobApplication->jobPosition->title ?? 'N/A' }}
+                                </p>
+                                <p class="text-muted small mb-0" style="font-size: 0.75rem;">
+                                    {{ $interview->scheduled_at?->format('M d, Y h:i A') }}
+                                </p>
                             </div>
-
-                            <div class="recruitment-item bg-light-blue">
-                                <h6 class="fw-bold mb-1 text-dark">Final Round</h6>
-                                <p class="text-muted small mb-1">Lisa Johnson - Marketing</p>
-                                <p class="text-muted small mb-0" style="font-size: 0.75rem;">Friday 10:00 AM</p>
-                            </div>
-
+                            @empty
+                            <p class="text-muted mb-0">No upcoming interviews found.</p>
+                            @endforelse
                         </div>
                     </div>
                 </div>

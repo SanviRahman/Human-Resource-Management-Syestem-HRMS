@@ -6,6 +6,9 @@ use App\Models\Activity;
 use App\Models\Attendance;
 use App\Models\Employee;
 use App\Models\Event;
+use App\Models\Interview;
+use App\Models\JobApplication;
+use App\Models\JobPosition;
 use App\Models\LeaveRequest;
 use App\Models\Payroll;
 use Carbon\Carbon;
@@ -203,6 +206,31 @@ class AdminController extends Controller
 
         $payrollMonthLabel = $payrollMonthDate->format('F Y');
 
+        // Reqruitment Section
+        $openPositions = \Illuminate\Support\Facades\Schema::hasTable('job_positions')
+            ? JobPosition::withCount('applications')
+            ->where('status', 'active')
+            ->latest()
+            ->take(5)
+            ->get()
+            : collect();
+
+        $recentApplications = \Illuminate\Support\Facades\Schema::hasTable('job_applications')
+            ? JobApplication::with('jobPosition')
+            ->latest()
+            ->take(5)
+            ->get()
+            : collect();
+
+        $upcomingInterviews = \Illuminate\Support\Facades\Schema::hasTable('interviews')
+            ? Interview::with('jobApplication.jobPosition')
+            ->where('scheduled_at', '>=', now())
+            ->where('status', 'scheduled')
+            ->orderBy('scheduled_at')
+            ->take(5)
+            ->get()
+            : collect();
+
         return view('admin.dashboard', compact(
             'employees',
             'allEmployees',
@@ -233,6 +261,9 @@ class AdminController extends Controller
             'selectedPayrollMonth',
             'availablePayrollMonths',
             'payrollMonthLabel',
+            'openPositions',
+            'recentApplications',
+            'upcomingInterviews',
         ));
     }
 }
