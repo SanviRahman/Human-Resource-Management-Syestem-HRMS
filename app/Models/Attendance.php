@@ -4,23 +4,19 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class LeaveRequest extends Model
+class Attendance extends Model
 {
-    protected $table = 'leave_requests';
-
     protected $fillable = [
         'employee_id',
-        'leave_type',
-        'start_date',
-        'end_date',
-        'days',
+        'attendance_date',
+        'check_in',
+        'check_out',
+        'work_hours',
         'status',
-        'reason',
     ];
 
     protected $casts = [
-        'start_date' => 'date',
-        'end_date' => 'date',
+        'attendance_date' => 'date',
     ];
 
     public function employee()

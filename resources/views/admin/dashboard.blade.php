@@ -1406,45 +1406,59 @@
         </div>
 
         <!-- Attendance Section -->
+        <!-- Attendance Section -->
         <div id="attendance" class="content-section">
+            @if(session('success'))
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                {{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            @endif
 
             <div class="row g-3 mb-4">
                 <div class="col-sm-6 col-lg-3">
                     <div class="att-summary-card">
-                        <div class="att-icon-wrapper" style="color: #3b82f6;"><i
-                                class="material-icons-round">calendar_month</i></div>
+                        <div class="att-icon-wrapper" style="color: #3b82f6;">
+                            <i class="material-icons-round">calendar_month</i>
+                        </div>
                         <div>
-                            <p class="att-value">24</p>
+                            <p class="att-value">{{ $attendanceStats['total_leave_days'] }}</p>
                             <p class="att-label">Total Leave Days</p>
                         </div>
                     </div>
                 </div>
+
                 <div class="col-sm-6 col-lg-3">
                     <div class="att-summary-card">
-                        <div class="att-icon-wrapper" style="color: #10b981;"><i
-                                class="material-icons-round">schedule</i></div>
+                        <div class="att-icon-wrapper" style="color: #10b981;">
+                            <i class="material-icons-round">schedule</i>
+                        </div>
                         <div>
-                            <p class="att-value">8</p>
+                            <p class="att-value">{{ $attendanceStats['used_leave'] }}</p>
                             <p class="att-label">Used Leave</p>
                         </div>
                     </div>
                 </div>
+
                 <div class="col-sm-6 col-lg-3">
                     <div class="att-summary-card">
-                        <div class="att-icon-wrapper" style="color: #f59e0b;"><i
-                                class="material-icons-round">error_outline</i></div>
+                        <div class="att-icon-wrapper" style="color: #f59e0b;">
+                            <i class="material-icons-round">error_outline</i>
+                        </div>
                         <div>
-                            <p class="att-value">2</p>
+                            <p class="att-value">{{ $attendanceStats['pending_requests'] }}</p>
                             <p class="att-label">Pending Requests</p>
                         </div>
                     </div>
                 </div>
+
                 <div class="col-sm-6 col-lg-3">
                     <div class="att-summary-card">
-                        <div class="att-icon-wrapper" style="color: #8b5cf6;"><i
-                                class="material-icons-round">check_circle_outline</i></div>
+                        <div class="att-icon-wrapper" style="color: #8b5cf6;">
+                            <i class="material-icons-round">check_circle_outline</i>
+                        </div>
                         <div>
-                            <p class="att-value">12</p>
+                            <p class="att-value">{{ $attendanceStats['approved_requests'] }}</p>
                             <p class="att-label">Approved Requests</p>
                         </div>
                     </div>
@@ -1459,11 +1473,17 @@
                         <div class="calendar-wrapper border rounded p-3 mb-4 flex-grow-1"
                             style="background: #fafafa; border-color: #eaeaea !important;">
                             <div class="calendar-header">
-                                <button class="cal-nav-btn"><i class="material-icons-round"
-                                        style="font-size:16px;">chevron_left</i></button>
-                                <h6>March 2026</h6>
-                                <button class="cal-nav-btn"><i class="material-icons-round"
-                                        style="font-size:16px;">chevron_right</i></button>
+                                <a class="cal-nav-btn text-decoration-none"
+                                    href="{{ route('admin.dashboard', ['tab' => 'attendance', 'attendance_month' => $prevAttendanceMonth]) }}">
+                                    <i class="material-icons-round" style="font-size:16px;">chevron_left</i>
+                                </a>
+
+                                <h6>{{ $attendanceMonthLabel }}</h6>
+
+                                <a class="cal-nav-btn text-decoration-none"
+                                    href="{{ route('admin.dashboard', ['tab' => 'attendance', 'attendance_month' => $nextAttendanceMonth]) }}">
+                                    <i class="material-icons-round" style="font-size:16px;">chevron_right</i>
+                                </a>
                             </div>
 
                             <div class="calendar-grid">
@@ -1475,41 +1495,12 @@
                                 <div class="calendar-day-header">Fr</div>
                                 <div class="calendar-day-header">Sa</div>
 
-                                <div class="calendar-date">1</div>
-                                <div class="calendar-date">2</div>
-                                <div class="calendar-date">3</div>
-                                <div class="calendar-date">4</div>
-                                <div class="calendar-date">5</div>
-                                <div class="calendar-date">6</div>
-                                <div class="calendar-date">7</div>
-                                <div class="calendar-date">8</div>
-                                <div class="calendar-date">9</div>
-                                <div class="calendar-date">10</div>
-                                <div class="calendar-date">11</div>
-                                <div class="calendar-date">12</div>
-                                <div class="calendar-date">13</div>
-                                <div class="calendar-date">14</div>
-                                <div class="calendar-date">15</div>
-                                <div class="calendar-date">16</div>
-                                <div class="calendar-date">17</div>
-                                <div class="calendar-date">18</div>
-                                <div class="calendar-date">19</div>
-                                <div class="calendar-date">20</div>
-                                <div class="calendar-date">21</div>
-                                <div class="calendar-date">22</div>
-                                <div class="calendar-date active">23</div>
-                                <div class="calendar-date">24</div>
-                                <div class="calendar-date">25</div>
-                                <div class="calendar-date">26</div>
-                                <div class="calendar-date">27</div>
-                                <div class="calendar-date">28</div>
-                                <div class="calendar-date">29</div>
-                                <div class="calendar-date">30</div>
-                                <div class="calendar-date">31</div>
-                                <div class="calendar-date text-muted" style="opacity: 0.5;">1</div>
-                                <div class="calendar-date text-muted" style="opacity: 0.5;">2</div>
-                                <div class="calendar-date text-muted" style="opacity: 0.5;">3</div>
-                                <div class="calendar-date text-muted" style="opacity: 0.5;">4</div>
+                                @foreach($attendanceCalendar as $day)
+                                <div class="calendar-date {{ $day['is_today'] ? 'active' : '' }} {{ !$day['is_current_month'] ? 'text-muted' : '' }}"
+                                    style="{{ !$day['is_current_month'] ? 'opacity:0.5;' : '' }}">
+                                    {{ $day['day'] }}
+                                </div>
+                                @endforeach
                             </div>
                         </div>
 
@@ -1530,56 +1521,85 @@
 
                 <div class="col-lg-8">
                     <div class="custom-card h-100">
-                        <h6 class="mb-4 text-dark" style="font-weight: 600;">Recent Attendance</h6>
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h6 class="text-dark m-0" style="font-weight: 600;">Recent Attendance</h6>
+                            <button type="button" class="btn btn-dark d-flex align-items-center gap-2 px-3"
+                                data-bs-toggle="modal" data-bs-target="#createAttendanceModal">
+                                <i class="material-icons-round" style="font-size: 18px;">add</i> Add Attendance
+                            </button>
+                        </div>
+
                         <div class="table-responsive">
                             <table class="table data-table mb-0">
                                 <thead>
                                     <tr>
                                         <th>Date</th>
+                                        <th>Employee</th>
                                         <th>Check In</th>
                                         <th>Check Out</th>
                                         <th>Hours</th>
                                         <th>Status</th>
+                                        <th>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
+                                    @forelse($recentAttendance as $attendance)
                                     <tr>
-                                        <td>2/1/2024</td>
-                                        <td>09:00</td>
-                                        <td>17:30</td>
-                                        <td>8.5h</td>
-                                        <td><span class="status-badge status-active px-3 py-1">Present</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td>2/2/2024</td>
-                                        <td>09:15</td>
-                                        <td>17:45</td>
-                                        <td>8.5h</td>
-                                        <td><span class="status-badge bg-light text-dark border px-3 py-1">Late</span>
+                                        <td>{{ $attendance->attendance_date?->format('n/j/Y') }}</td>
+                                        <td>
+                                            <p class="emp-name mb-0">{{ $attendance->employee->name ?? 'N/A' }}</p>
+                                            <p class="emp-email mb-0">
+                                                EMP{{ str_pad($attendance->employee->id ?? 0, 3, '0', STR_PAD_LEFT) }}
+                                            </p>
+                                        </td>
+                                        <td>{{ $attendance->check_in ? \Carbon\Carbon::parse($attendance->check_in)->format('H:i') : '-' }}
+                                        </td>
+                                        <td>{{ $attendance->check_out ? \Carbon\Carbon::parse($attendance->check_out)->format('H:i') : '-' }}
+                                        </td>
+                                        <td>{{ number_format($attendance->work_hours, 1) }}h</td>
+                                        <td>
+                                            @if($attendance->status === 'present')
+                                            <span class="status-badge status-active px-3 py-1">Present</span>
+                                            @elseif($attendance->status === 'late')
+                                            <span class="status-badge bg-light text-dark border px-3 py-1">Late</span>
+                                            @elseif($attendance->status === 'half_day')
+                                            <span class="status-badge bg-light text-muted border px-3 py-1">Half
+                                                Day</span>
+                                            @else
+                                            <span class="status-badge status-inactive px-3 py-1">
+                                                {{ ucfirst(str_replace('_', ' ', $attendance->status)) }}
+                                            </span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            <button type="button" class="action-btn edit-btn editAttendanceBtn"
+                                                data-bs-toggle="modal" data-bs-target="#editAttendanceModal"
+                                                data-id="{{ $attendance->id }}"
+                                                data-employee-id="{{ $attendance->employee_id }}"
+                                                data-attendance-date="{{ $attendance->attendance_date?->format('Y-m-d') }}"
+                                                data-check-in="{{ $attendance->check_in ? \Carbon\Carbon::parse($attendance->check_in)->format('H:i') : '' }}"
+                                                data-check-out="{{ $attendance->check_out ? \Carbon\Carbon::parse($attendance->check_out)->format('H:i') : '' }}"
+                                                data-status="{{ $attendance->status }}">
+                                                <i class="material-icons-round">edit</i>
+                                            </button>
+
+                                            <form action="{{ route('admin.attendances.destroy', $attendance->id) }}"
+                                                method="POST" class="d-inline"
+                                                onsubmit="return confirm('Are you sure you want to delete this attendance record?')">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="action-btn delete-btn">
+                                                    <i class="material-icons-round">delete_outline</i>
+                                                </button>
+                                            </form>
                                         </td>
                                     </tr>
+                                    @empty
                                     <tr>
-                                        <td>2/3/2024</td>
-                                        <td>09:00</td>
-                                        <td>13:00</td>
-                                        <td>4h</td>
-                                        <td><span class="status-badge bg-light text-muted border px-3 py-1">Half
-                                                day</span></td>
+                                        <td colspan="7" class="text-center text-muted py-4">No attendance records found.
+                                        </td>
                                     </tr>
-                                    <tr>
-                                        <td>2/4/2024</td>
-                                        <td>-</td>
-                                        <td>-</td>
-                                        <td>0h</td>
-                                        <td><span class="status-badge status-inactive px-3 py-1">Absent</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td>2/5/2024</td>
-                                        <td>08:45</td>
-                                        <td>17:15</td>
-                                        <td>8.5h</td>
-                                        <td><span class="status-badge status-active px-3 py-1">Present</span></td>
-                                    </tr>
+                                    @endforelse
                                 </tbody>
                             </table>
                         </div>
@@ -1592,7 +1612,8 @@
                     <div class="custom-card">
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <h6 class="text-dark m-0" style="font-weight: 600;">Leave Requests</h6>
-                            <button class="btn btn-dark d-flex align-items-center gap-2 px-3">
+                            <button type="button" class="btn btn-dark d-flex align-items-center gap-2 px-3"
+                                data-bs-toggle="modal" data-bs-target="#createLeaveRequestModal">
                                 <i class="material-icons-round" style="font-size: 18px;">add</i> Apply for Leave
                             </button>
                         </div>
@@ -1611,74 +1632,87 @@
                                     </tr>
                                 </thead>
                                 <tbody>
+                                    @forelse($leaveRequests as $leaveRequest)
                                     <tr>
                                         <td>
-                                            <p class="emp-name">John Doe</p>
-                                            <p class="emp-email">EMP001</p>
+                                            <p class="emp-name">{{ $leaveRequest->employee->name ?? 'N/A' }}</p>
+                                            <p class="emp-email">
+                                                EMP{{ str_pad($leaveRequest->employee->id ?? 0, 3, '0', STR_PAD_LEFT) }}
+                                            </p>
                                         </td>
-                                        <td><span class="type-badge">Vacation</span></td>
+                                        <td><span class="type-badge">{{ $leaveRequest->leave_type }}</span></td>
                                         <td>
-                                            <p class="m-0" style="font-size:0.85rem; color:#374151;">2/15/2024</p>
-                                            <p class="m-0" style="font-size:0.8rem; color:#6b7280;">to 2/19/2024</p>
+                                            <p class="m-0" style="font-size:0.85rem; color:#374151;">
+                                                {{ $leaveRequest->start_date?->format('n/j/Y') }}
+                                            </p>
+                                            <p class="m-0" style="font-size:0.8rem; color:#6b7280;">
+                                                to {{ $leaveRequest->end_date?->format('n/j/Y') }}
+                                            </p>
                                         </td>
-                                        <td>5 day(s)</td>
-                                        <td>1/20/2024</td>
+                                        <td>{{ $leaveRequest->days }} day(s)</td>
+                                        <td>{{ $leaveRequest->created_at?->format('n/j/Y') }}</td>
                                         <td>
+                                            @if($leaveRequest->status === 'pending')
                                             <span
                                                 class="status-badge bg-light text-muted border d-inline-flex align-items-center gap-1">
                                                 <i class="material-icons-round" style="font-size:14px;">schedule</i>
                                                 Pending
                                             </span>
-                                        </td>
-                                        <td>
-                                            <div class="d-flex gap-2">
-                                                <button class="btn-approve">Approve</button>
-                                                <button class="btn-reject">Reject</button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            <p class="emp-name">Sarah Johnson</p>
-                                            <p class="emp-email">EMP002</p>
-                                        </td>
-                                        <td><span class="type-badge">Sick</span></td>
-                                        <td>
-                                            <p class="m-0" style="font-size:0.85rem; color:#374151;">2/10/2024</p>
-                                            <p class="m-0" style="font-size:0.8rem; color:#6b7280;">to 2/12/2024</p>
-                                        </td>
-                                        <td>3 day(s)</td>
-                                        <td>2/8/2024</td>
-                                        <td>
+                                            @elseif($leaveRequest->status === 'approved')
                                             <span
                                                 class="status-badge status-active d-inline-flex align-items-center gap-1">
                                                 <i class="material-icons-round" style="font-size:14px;">check_circle</i>
                                                 Approved
                                             </span>
-                                        </td>
-                                        <td></td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            <p class="emp-name">Mike Chen</p>
-                                            <p class="emp-email">EMP003</p>
-                                        </td>
-                                        <td><span class="type-badge">Personal</span></td>
-                                        <td>
-                                            <p class="m-0" style="font-size:0.85rem; color:#374151;">2/20/2024</p>
-                                            <p class="m-0" style="font-size:0.8rem; color:#6b7280;">to 2/20/2024</p>
-                                        </td>
-                                        <td>1 day(s)</td>
-                                        <td>2/5/2024</td>
-                                        <td>
+                                            @else
                                             <span
                                                 class="status-badge status-inactive d-inline-flex align-items-center gap-1">
                                                 <i class="material-icons-round" style="font-size:14px;">cancel</i>
                                                 Rejected
                                             </span>
+                                            @endif
                                         </td>
-                                        <td></td>
+                                        <td>
+                                            @if($leaveRequest->status === 'pending')
+                                            <div class="d-flex gap-2">
+                                                <form
+                                                    action="{{ route('admin.leave-requests.update', $leaveRequest->id) }}"
+                                                    method="POST">
+                                                    @csrf
+                                                    @method('PUT')
+                                                    <input type="hidden" name="status" value="approved">
+                                                    <button type="submit" class="btn-approve">Approve</button>
+                                                </form>
+
+                                                <form
+                                                    action="{{ route('admin.leave-requests.update', $leaveRequest->id) }}"
+                                                    method="POST">
+                                                    @csrf
+                                                    @method('PUT')
+                                                    <input type="hidden" name="status" value="rejected">
+                                                    <button type="submit" class="btn-reject">Reject</button>
+                                                </form>
+                                            </div>
+                                            @else
+                                            <form
+                                                action="{{ route('admin.leave-requests.destroy', $leaveRequest->id) }}"
+                                                method="POST"
+                                                onsubmit="return confirm('Are you sure you want to delete this leave request?')">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="action-btn delete-btn">
+                                                    <i class="material-icons-round">delete_outline</i>
+                                                </button>
+                                            </form>
+                                            @endif
+                                        </td>
                                     </tr>
+                                    @empty
+                                    <tr>
+                                        <td colspan="7" class="text-center text-muted py-4">No leave requests found.
+                                        </td>
+                                    </tr>
+                                    @endforelse
                                 </tbody>
                             </table>
                         </div>
@@ -1686,7 +1720,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Payroll Section -->
         <div id="payroll" class="content-section">
 
@@ -1863,6 +1897,7 @@
                 </div>
             </div>
         </div>
+
         <!-- Recruitment Section -->
         <div id="recruitment" class="content-section">
 
@@ -2236,6 +2271,183 @@
         </div>
     </div>
 
+    <!-- Create Attendance Modal -->
+    <div class="modal fade" id="createAttendanceModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <form action="{{ route('admin.attendances.store') }}" method="POST">
+                    @csrf
+
+                    <div class="modal-header">
+                        <h5 class="modal-title">Add Attendance</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Employee</label>
+                            <select name="employee_id" class="form-select" required>
+                                <option value="">Select Employee</option>
+                                @foreach($allEmployees as $emp)
+                                <option value="{{ $emp->id }}">{{ $emp->name }}
+                                    (EMP{{ str_pad($emp->id, 3, '0', STR_PAD_LEFT) }})</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Attendance Date</label>
+                            <input type="date" name="attendance_date" class="form-control" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Check In</label>
+                            <input type="time" name="check_in" class="form-control">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Check Out</label>
+                            <input type="time" name="check_out" class="form-control">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Status</label>
+                            <select name="status" class="form-select" required>
+                                <option value="present">Present</option>
+                                <option value="late">Late</option>
+                                <option value="half_day">Half Day</option>
+                                <option value="absent">Absent</option>
+                                <option value="leave">Leave</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-dark">Save Attendance</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Attendance Modal -->
+    <div class="modal fade" id="editAttendanceModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <form id="editAttendanceForm" method="POST">
+                    @csrf
+                    @method('PUT')
+
+                    <div class="modal-header">
+                        <h5 class="modal-title">Update Attendance</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Employee</label>
+                            <select name="employee_id" id="edit_attendance_employee_id" class="form-select" required>
+                                <option value="">Select Employee</option>
+                                @foreach($allEmployees as $emp)
+                                <option value="{{ $emp->id }}">{{ $emp->name }}
+                                    (EMP{{ str_pad($emp->id, 3, '0', STR_PAD_LEFT) }})</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Attendance Date</label>
+                            <input type="date" name="attendance_date" id="edit_attendance_date" class="form-control"
+                                required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Check In</label>
+                            <input type="time" name="check_in" id="edit_check_in" class="form-control">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Check Out</label>
+                            <input type="time" name="check_out" id="edit_check_out" class="form-control">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Status</label>
+                            <select name="status" id="edit_attendance_status" class="form-select" required>
+                                <option value="present">Present</option>
+                                <option value="late">Late</option>
+                                <option value="half_day">Half Day</option>
+                                <option value="absent">Absent</option>
+                                <option value="leave">Leave</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-dark">Update Attendance</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Leave Request Modal -->
+    <div class="modal fade" id="createLeaveRequestModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <form action="{{ route('admin.leave-requests.store') }}" method="POST">
+                    @csrf
+
+                    <div class="modal-header">
+                        <h5 class="modal-title">Apply for Leave</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Employee</label>
+                            <select name="employee_id" class="form-select" required>
+                                <option value="">Select Employee</option>
+                                @foreach($allEmployees as $emp)
+                                <option value="{{ $emp->id }}">{{ $emp->name }}
+                                    (EMP{{ str_pad($emp->id, 3, '0', STR_PAD_LEFT) }})</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Leave Type</label>
+                            <input type="text" name="leave_type" class="form-control"
+                                placeholder="e.g. Vacation / Sick / Personal" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Start Date</label>
+                            <input type="date" name="start_date" class="form-control" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">End Date</label>
+                            <input type="date" name="end_date" class="form-control" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Reason</label>
+                            <textarea name="reason" class="form-control" rows="3"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-dark">Submit Leave Request</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
     function toggleSidebar() {
@@ -2305,6 +2517,30 @@
                 document.getElementById('edit_designation').value = designation ?? '';
                 document.getElementById('edit_status').value = status ?? 'active';
                 document.getElementById('edit_joining_date').value = joiningDate ?? '';
+            });
+        });
+    });
+    </script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const editAttendanceButtons = document.querySelectorAll('.editAttendanceBtn');
+        const editAttendanceForm = document.getElementById('editAttendanceForm');
+
+        editAttendanceButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const id = this.dataset.id;
+                const employeeId = this.dataset.employeeId;
+                const attendanceDate = this.dataset.attendanceDate;
+                const checkIn = this.dataset.checkIn;
+                const checkOut = this.dataset.checkOut;
+                const status = this.dataset.status;
+
+                editAttendanceForm.action = `/admin/attendances/${id}`;
+                document.getElementById('edit_attendance_employee_id').value = employeeId || '';
+                document.getElementById('edit_attendance_date').value = attendanceDate || '';
+                document.getElementById('edit_check_in').value = checkIn || '';
+                document.getElementById('edit_check_out').value = checkOut || '';
+                document.getElementById('edit_attendance_status').value = status || 'present';
             });
         });
     });

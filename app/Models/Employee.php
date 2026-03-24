@@ -20,4 +20,14 @@ class Employee extends Model
     protected $casts = [
         'joining_date' => 'date',
     ];
+
+    public function attendances()
+    {
+        return $this->hasMany(Attendance::class);
+    }
+
+    public function leaveRequests()
+    {
+        return $this->hasMany(LeaveRequest::class);
+    }
 }

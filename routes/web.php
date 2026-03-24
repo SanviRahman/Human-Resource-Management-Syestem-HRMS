@@ -4,6 +4,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthenticController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\EmployeeController;
+use App\Http\Controllers\Admin\AttendanceController;
+use App\Http\Controllers\Admin\LeaveRequestController;
 
 // Login Routes
 Route::get('/', [AuthenticController::class, 'showLogin'])->name('login');
@@ -22,6 +24,8 @@ Route::middleware(['auth', 'role:admin'])
 
         // resourceful route for employee CRUD
         Route::resource('employees', EmployeeController::class)->except(['show', 'create', 'edit', 'index']);
+        Route::resource('attendances', AttendanceController::class)->except(['show', 'create', 'edit', 'index']);
+        Route::resource('leave-requests', LeaveRequestController::class)->except(['show', 'create', 'edit', 'index']);
     });
 
 // HR

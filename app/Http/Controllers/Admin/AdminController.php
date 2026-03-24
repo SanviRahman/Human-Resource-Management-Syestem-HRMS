@@ -3,15 +3,16 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Attendance;
 use App\Models\Employee;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\DB;
 use App\Models\LeaveRequest;
-use App\Models\Activity;
 use App\Models\Payroll;
+use App\Models\Activity;
 use App\Models\Event;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class AdminController extends Controller
 {
@@ -40,6 +41,8 @@ class AdminController extends Controller
             ->paginate(10)
             ->withQueryString();
 
+        $allEmployees = Employee::orderBy('name')->get();
+
         $employeeStats = [
             'total' => Employee::count(),
             'active' => Employee::where('status', 'active')->count(),
@@ -57,15 +60,11 @@ class AdminController extends Controller
         $monthStart = $now->copy()->startOfMonth();
         $monthEnd = $now->copy()->endOfMonth();
 
-        // Dashboard stats
+        // dashboard
         $totalEmployees = $employeeStats['total'];
         $activeEmployees = $employeeStats['active'];
-
         $newEmployeesThisMonth = Employee::whereBetween('created_at', [$monthStart, $monthEnd])->count();
-
-        $activePercentage = $totalEmployees > 0
-            ? round(($activeEmployees / $totalEmployees) * 100)
-            : 0;
+        $activePercentage = $totalEmployees > 0 ? round(($activeEmployees / $totalEmployees) * 100) : 0;
 
         $pendingLeaveRequests = Schema::hasTable('leave_requests')
             ? LeaveRequest::where('status', 'pending')->count()
@@ -84,7 +83,6 @@ class AdminController extends Controller
             ])->sum('net_pay')
             : 0;
 
-        // Department overview
         $departmentOverview = Employee::select('department', DB::raw('COUNT(*) as total'))
             ->whereNotNull('department')
             ->where('department', '!=', '')
@@ -94,7 +92,6 @@ class AdminController extends Controller
 
         $maxDepartmentCount = $departmentOverview->max('total') ?: 1;
 
-        // Recent activities
         $recentActivities = collect();
         if (Schema::hasTable('activities') && class_exists(Activity::class)) {
             $recentActivities = Activity::latest()
@@ -114,14 +111,13 @@ class AdminController extends Controller
                 });
         }
 
-        // Upcoming events
         $upcomingEvents = collect();
         if (Schema::hasTable('events') && class_exists(Event::class)) {
             $upcomingEvents = Event::whereDate('event_date', '>=', $now->toDateString())
                 ->orderBy('event_date')
                 ->take(3)
                 ->get()
-                ->map(function ($event) use ($now) {
+                ->map(function ($event) {
                     $eventTime = Carbon::parse($event->event_date);
 
                     return [
@@ -141,8 +137,47 @@ class AdminController extends Controller
                 });
         }
 
+        // attendance section
+        $attendanceStats = [
+            'total_leave_days' => Schema::hasTable('leave_requests') ? LeaveRequest::sum('days') : 0,
+            'used_leave' => Schema::hasTable('leave_requests') ? LeaveRequest::where('status', 'approved')->sum('days') : 0,
+            'pending_requests' => Schema::hasTable('leave_requests') ? LeaveRequest::where('status', 'pending')->count() : 0,
+            'approved_requests' => Schema::hasTable('leave_requests') ? LeaveRequest::where('status', 'approved')->count() : 0,
+        ];
+
+        $recentAttendance = Schema::hasTable('attendances')
+            ? Attendance::with('employee')->latest('attendance_date')->take(10)->get()
+            : collect();
+
+        $leaveRequests = Schema::hasTable('leave_requests')
+            ? LeaveRequest::with('employee')->latest()->take(10)->get()
+            : collect();
+
+        $attendanceMonth = $request->get('attendance_month', now()->format('Y-m'));
+        $calendarBase = Carbon::createFromFormat('Y-m', $attendanceMonth)->startOfMonth();
+        $calendarStart = $calendarBase->copy()->startOfWeek(Carbon::SUNDAY);
+        $calendarEnd = $calendarBase->copy()->endOfMonth()->endOfWeek(Carbon::SATURDAY);
+
+        $attendanceCalendar = [];
+        $current = $calendarStart->copy();
+
+        while ($current <= $calendarEnd) {
+            $attendanceCalendar[] = [
+                'date' => $current->copy(),
+                'day' => $current->day,
+                'is_current_month' => $current->month === $calendarBase->month,
+                'is_today' => $current->isToday(),
+            ];
+            $current->addDay();
+        }
+
+        $attendanceMonthLabel = $calendarBase->format('F Y');
+        $prevAttendanceMonth = $calendarBase->copy()->subMonth()->format('Y-m');
+        $nextAttendanceMonth = $calendarBase->copy()->addMonth()->format('Y-m');
+
         return view('admin.dashboard', compact(
             'employees',
+            'allEmployees',
             'employeeStats',
             'departments',
             'search',
@@ -157,7 +192,14 @@ class AdminController extends Controller
             'departmentOverview',
             'maxDepartmentCount',
             'recentActivities',
-            'upcomingEvents'
+            'upcomingEvents',
+            'attendanceStats',
+            'recentAttendance',
+            'leaveRequests',
+            'attendanceCalendar',
+            'attendanceMonthLabel',
+            'prevAttendanceMonth',
+            'nextAttendanceMonth'
         ));
     }
 }
