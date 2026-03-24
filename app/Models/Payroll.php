@@ -22,4 +22,9 @@ class Payroll extends Model
     protected $casts = [
         'payroll_month' => 'date',
     ];
+
+    public function employee()
+    {
+        return $this->belongsTo(Employee::class);
+    }
 }

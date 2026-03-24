@@ -1722,26 +1722,41 @@
         </div>
 
         <!-- Payroll Section -->
+
         <div id="payroll" class="content-section">
+            @if(session('success'))
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                {{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            @endif
 
             <div class="d-flex justify-content-between align-items-center mb-4 action-bar-mobile">
-                <div class="d-flex gap-3">
-                    <select class="form-select filter-select" style="width: 180px; font-size: 0.9rem;">
-                        <option>February 2024</option>
-                        <option>January 2024</option>
-                        <option>December 2023</option>
+                <form method="GET" action="{{ route('admin.dashboard') }}"
+                    class="d-flex gap-3 flex-wrap align-items-center">
+                    <input type="hidden" name="tab" value="payroll">
+
+                    <select name="payroll_month" class="form-select filter-select"
+                        style="width: 180px; font-size: 0.9rem;">
+                        @foreach($availablePayrollMonths as $monthValue)
+                        <option value="{{ $monthValue }}" {{ $selectedPayrollMonth == $monthValue ? 'selected' : '' }}>
+                            {{ \Carbon\Carbon::createFromFormat('Y-m', $monthValue)->format('F Y') }}
+                        </option>
+                        @endforeach
                     </select>
-                </div>
-                <div class="d-flex gap-2 flex-wrap">
-                    <button class="btn bg-white border d-flex align-items-center gap-2 px-3 text-dark"
+
+                    <button type="submit" class="btn bg-white border d-flex align-items-center gap-2 px-3 text-dark"
                         style="font-size: 0.9rem; font-weight: 500;">
+                        <i class="material-icons-round text-muted" style="font-size: 18px;">filter_alt</i> Filter
+                    </button>
+                </form>
+
+                <div class="d-flex gap-2 flex-wrap">
+                    <button type="button" class="btn bg-white border d-flex align-items-center gap-2 px-3 text-dark"
+                        style="font-size: 0.9rem; font-weight: 500;" data-bs-toggle="modal"
+                        data-bs-target="#createPayrollModal">
                         <i class="material-icons-round text-muted" style="font-size: 18px;">calculate</i> Generate
                         Payroll
-                    </button>
-                    <button class="btn bg-white border d-flex align-items-center gap-2 px-3 text-dark"
-                        style="font-size: 0.9rem; font-weight: 500;">
-                        <i class="material-icons-round text-muted" style="font-size: 18px;">file_download</i> Export
-                        Report
                     </button>
                 </div>
             </div>
@@ -1749,40 +1764,47 @@
             <div class="row g-3 mb-4">
                 <div class="col-sm-6 col-lg-3">
                     <div class="att-summary-card">
-                        <div class="att-icon-wrapper" style="color: #3b82f6;"><i class="material-icons-round">groups</i>
+                        <div class="att-icon-wrapper" style="color: #3b82f6;">
+                            <i class="material-icons-round">groups</i>
                         </div>
                         <div>
-                            <p class="att-value">4</p>
+                            <p class="att-value">{{ $payrollStats['total_employees'] }}</p>
                             <p class="att-label">Total Employees</p>
                         </div>
                     </div>
                 </div>
+
                 <div class="col-sm-6 col-lg-3">
                     <div class="att-summary-card">
-                        <div class="att-icon-wrapper" style="color: #10b981;"><i
-                                class="material-icons-round">attach_money</i></div>
+                        <div class="att-icon-wrapper" style="color: #10b981;">
+                            <i class="material-icons-round">attach_money</i>
+                        </div>
                         <div>
-                            <p class="att-value">$25,650</p>
+                            <p class="att-value">${{ number_format($payrollStats['total_payroll'], 2) }}</p>
                             <p class="att-label">Total Payroll</p>
                         </div>
                     </div>
                 </div>
+
                 <div class="col-sm-6 col-lg-3">
                     <div class="att-summary-card">
-                        <div class="att-icon-wrapper" style="color: #8b5cf6;"><i
-                                class="material-icons-round">trending_up</i></div>
+                        <div class="att-icon-wrapper" style="color: #8b5cf6;">
+                            <i class="material-icons-round">trending_up</i>
+                        </div>
                         <div>
-                            <p class="att-value">2</p>
+                            <p class="att-value">{{ $payrollStats['processed'] }}</p>
                             <p class="att-label">Processed</p>
                         </div>
                     </div>
                 </div>
+
                 <div class="col-sm-6 col-lg-3">
                     <div class="att-summary-card">
-                        <div class="att-icon-wrapper" style="color: #f97316;"><i
-                                class="material-icons-round">description</i></div>
+                        <div class="att-icon-wrapper" style="color: #f97316;">
+                            <i class="material-icons-round">description</i>
+                        </div>
                         <div>
-                            <p class="att-value">1</p>
+                            <p class="att-value">{{ $payrollStats['pending'] }}</p>
                             <p class="att-label">Pending</p>
                         </div>
                     </div>
@@ -1790,7 +1812,11 @@
             </div>
 
             <div class="custom-card">
-                <h6 class="mb-4 text-dark" style="font-weight: 600;">Payroll Records - February 2024</h6>
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h6 class="m-0 text-dark" style="font-weight: 600;">
+                        Payroll Records - {{ $payrollMonthLabel }}
+                    </h6>
+                </div>
 
                 <div class="table-responsive">
                     <table class="table data-table mb-0">
@@ -1808,90 +1834,58 @@
                             </tr>
                         </thead>
                         <tbody>
+                            @forelse($payrollRecords as $payroll)
                             <tr>
                                 <td>
-                                    <p class="emp-name">John Doe</p>
-                                    <p class="emp-email">EMP001</p>
+                                    <p class="emp-name">{{ $payroll->employee->name ?? 'N/A' }}</p>
+                                    <p class="emp-email">
+                                        EMP{{ str_pad($payroll->employee->id ?? 0, 3, '0', STR_PAD_LEFT) }}</p>
                                 </td>
-                                <td>Engineering</td>
-                                <td>$8,000</td>
-                                <td>$2,000</td>
-                                <td>$800</td>
-                                <td>$1,200</td>
-                                <td style="font-weight: 600; color: #1f2937;">$8,000</td>
-                                <td><span class="status-badge status-active px-3 py-1">Processed</span></td>
+                                <td>{{ $payroll->employee->department ?? 'N/A' }}</td>
+                                <td>${{ number_format($payroll->basic_salary, 2) }}</td>
+                                <td>${{ number_format($payroll->allowance, 2) }}</td>
+                                <td>${{ number_format($payroll->deduction, 2) }}</td>
+                                <td>${{ number_format($payroll->tax, 2) }}</td>
+                                <td style="font-weight: 600; color: #1f2937;">${{ number_format($payroll->net_pay, 2) }}
+                                </td>
+                                <td>
+                                    @if($payroll->status === 'processed')
+                                    <span class="status-badge status-active px-3 py-1">Processed</span>
+                                    @elseif($payroll->status === 'pending')
+                                    <span class="status-badge bg-light text-muted border px-3 py-1">Pending</span>
+                                    @else
+                                    <span class="status-badge bg-white text-dark border px-3 py-1">Approved</span>
+                                    @endif
+                                </td>
                                 <td>
                                     <div class="d-flex gap-2">
-                                        <button class="btn-outline-action"><i
-                                                class="material-icons-round">visibility</i></button>
-                                        <button class="btn-outline-action"><i
-                                                class="material-icons-round">file_download</i></button>
+                                        <button type="button" class="btn-outline-action editPayrollBtn"
+                                            data-bs-toggle="modal" data-bs-target="#editPayrollModal"
+                                            data-id="{{ $payroll->id }}" data-employee-id="{{ $payroll->employee_id }}"
+                                            data-payroll-month="{{ $payroll->payroll_month ? $payroll->payroll_month->format('Y-m-d') : '' }}"
+                                            data-basic-salary="{{ $payroll->basic_salary }}"
+                                            data-allowance="{{ $payroll->allowance }}"
+                                            data-deduction="{{ $payroll->deduction }}" data-tax="{{ $payroll->tax }}"
+                                            data-status="{{ $payroll->status }}">
+                                            <i class="material-icons-round">edit</i>
+                                        </button>
+
+                                        <form action="{{ route('admin.payrolls.destroy', $payroll->id) }}" method="POST"
+                                            onsubmit="return confirm('Are you sure you want to delete this payroll record?')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn-outline-action">
+                                                <i class="material-icons-round">delete</i>
+                                            </button>
+                                        </form>
                                     </div>
                                 </td>
                             </tr>
+                            @empty
                             <tr>
-                                <td>
-                                    <p class="emp-name">Sarah Johnson</p>
-                                    <p class="emp-email">EMP002</p>
-                                </td>
-                                <td>Marketing</td>
-                                <td>$6,500</td>
-                                <td>$1,500</td>
-                                <td>$650</td>
-                                <td>$950</td>
-                                <td style="font-weight: 600; color: #1f2937;">$6,400</td>
-                                <td><span class="status-badge status-active px-3 py-1">Processed</span></td>
-                                <td>
-                                    <div class="d-flex gap-2">
-                                        <button class="btn-outline-action"><i
-                                                class="material-icons-round">visibility</i></button>
-                                        <button class="btn-outline-action"><i
-                                                class="material-icons-round">file_download</i></button>
-                                    </div>
-                                </td>
+                                <td colspan="9" class="text-center text-muted py-4">No payroll records found.</td>
                             </tr>
-                            <tr>
-                                <td>
-                                    <p class="emp-name">Mike Chen</p>
-                                    <p class="emp-email">EMP003</p>
-                                </td>
-                                <td>Sales</td>
-                                <td>$5,500</td>
-                                <td>$1,200</td>
-                                <td>$550</td>
-                                <td>$800</td>
-                                <td style="font-weight: 600; color: #1f2937;">$5,350</td>
-                                <td><span class="status-badge bg-light text-muted border px-3 py-1">Pending</span></td>
-                                <td>
-                                    <div class="d-flex gap-2">
-                                        <button class="btn-outline-action"><i
-                                                class="material-icons-round">visibility</i></button>
-                                        <button class="btn-outline-action"><i
-                                                class="material-icons-round">file_download</i></button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <p class="emp-name">Emily Davis</p>
-                                    <p class="emp-email">EMP004</p>
-                                </td>
-                                <td>HR</td>
-                                <td>$6,000</td>
-                                <td>$1,400</td>
-                                <td>$600</td>
-                                <td>$900</td>
-                                <td style="font-weight: 600; color: #1f2937;">$5,900</td>
-                                <td><span class="status-badge bg-white text-dark border px-3 py-1">Approved</span></td>
-                                <td>
-                                    <div class="d-flex gap-2">
-                                        <button class="btn-outline-action"><i
-                                                class="material-icons-round">visibility</i></button>
-                                        <button class="btn-outline-action"><i
-                                                class="material-icons-round">file_download</i></button>
-                                    </div>
-                                </td>
-                            </tr>
+                            @endforelse
                         </tbody>
                     </table>
                 </div>
@@ -2448,6 +2442,155 @@
         </div>
     </div>
 
+
+    <!-- Create Payroll Modal -->
+    <div class="modal fade" id="createPayrollModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <form action="{{ route('admin.payrolls.store') }}" method="POST">
+                    @csrf
+
+                    <div class="modal-header">
+                        <h5 class="modal-title">Generate Payroll</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Employee</label>
+                            <select name="employee_id" class="form-select" required>
+                                <option value="">Select Employee</option>
+                                @foreach($allEmployees as $emp)
+                                <option value="{{ $emp->id }}">
+                                    {{ $emp->name }} (EMP{{ str_pad($emp->id, 3, '0', STR_PAD_LEFT) }})
+                                </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Payroll Month</label>
+                            <input type="date" name="payroll_month" class="form-control"
+                                value="{{ now()->startOfMonth()->format('Y-m-d') }}" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Basic Salary</label>
+                            <input type="number" step="0.01" min="0" name="basic_salary" class="form-control" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Allowances</label>
+                            <input type="number" step="0.01" min="0" name="allowance" class="form-control" value="0">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Deductions</label>
+                            <input type="number" step="0.01" min="0" name="deduction" class="form-control" value="0">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Tax</label>
+                            <input type="number" step="0.01" min="0" name="tax" class="form-control" value="0">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Status</label>
+                            <select name="status" class="form-select" required>
+                                <option value="pending">Pending</option>
+                                <option value="processed">Processed</option>
+                                <option value="approved">Approved</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-dark">Save Payroll</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+    <!-- Edit Payroll Modal -->
+    <div class="modal fade" id="editPayrollModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <form id="editPayrollForm" method="POST">
+                    @csrf
+                    @method('PUT')
+
+                    <div class="modal-header">
+                        <h5 class="modal-title">Update Payroll</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Employee</label>
+                            <select name="employee_id" id="edit_payroll_employee_id" class="form-select" required>
+                                <option value="">Select Employee</option>
+                                @foreach($allEmployees as $emp)
+                                <option value="{{ $emp->id }}">
+                                    {{ $emp->name }} (EMP{{ str_pad($emp->id, 3, '0', STR_PAD_LEFT) }})
+                                </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Payroll Month</label>
+                            <input type="date" name="payroll_month" id="edit_payroll_month" class="form-control"
+                                required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Basic Salary</label>
+                            <input type="number" step="0.01" min="0" name="basic_salary" id="edit_basic_salary"
+                                class="form-control" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Allowances</label>
+                            <input type="number" step="0.01" min="0" name="allowance" id="edit_allowance"
+                                class="form-control">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Deductions</label>
+                            <input type="number" step="0.01" min="0" name="deduction" id="edit_deduction"
+                                class="form-control">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Tax</label>
+                            <input type="number" step="0.01" min="0" name="tax" id="edit_tax" class="form-control">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Status</label>
+                            <select name="status" id="edit_payroll_status" class="form-select" required>
+                                <option value="pending">Pending</option>
+                                <option value="processed">Processed</option>
+                                <option value="approved">Approved</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-dark">Update Payroll</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
     function toggleSidebar() {
@@ -2520,8 +2663,8 @@
             });
         });
     });
-    </script>
-    <script>
+
+    //Attendance edit modal populate
     document.addEventListener('DOMContentLoaded', function() {
         const editAttendanceButtons = document.querySelectorAll('.editAttendanceBtn');
         const editAttendanceForm = document.getElementById('editAttendanceForm');
@@ -2541,6 +2684,34 @@
                 document.getElementById('edit_check_in').value = checkIn || '';
                 document.getElementById('edit_check_out').value = checkOut || '';
                 document.getElementById('edit_attendance_status').value = status || 'present';
+            });
+        });
+    });
+
+    //Payroll edit modal populate
+    document.addEventListener('DOMContentLoaded', function() {
+        const editPayrollButtons = document.querySelectorAll('.editPayrollBtn');
+        const editPayrollForm = document.getElementById('editPayrollForm');
+
+        editPayrollButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const id = this.dataset.id;
+                const employeeId = this.dataset.employeeId;
+                const payrollMonth = this.dataset.payrollMonth;
+                const basicSalary = this.dataset.basicSalary;
+                const allowance = this.dataset.allowance;
+                const deduction = this.dataset.deduction;
+                const tax = this.dataset.tax;
+                const status = this.dataset.status;
+
+                editPayrollForm.action = `/admin/payrolls/${id}`;
+                document.getElementById('edit_payroll_employee_id').value = employeeId || '';
+                document.getElementById('edit_payroll_month').value = payrollMonth || '';
+                document.getElementById('edit_basic_salary').value = basicSalary || 0;
+                document.getElementById('edit_allowance').value = allowance || 0;
+                document.getElementById('edit_deduction').value = deduction || 0;
+                document.getElementById('edit_tax').value = tax || 0;
+                document.getElementById('edit_payroll_status').value = status || 'pending';
             });
         });
     });
