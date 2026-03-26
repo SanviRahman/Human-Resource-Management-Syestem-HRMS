@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\LeaveRequestController;
 use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\PayrollController;
 use App\Http\Controllers\Auth\AuthenticController;
+use App\Http\Controllers\User\UserController;
 use Illuminate\Support\Facades\Route;
 
 // Login Routes
@@ -42,9 +43,7 @@ Route::middleware(['auth', 'role:hr'])->group(function () {
 
 // User
 Route::middleware(['auth', 'role:user'])->group(function () {
-    Route::get('/dashboard', function () {
-        return "This is normal User Dashboard";
-    })->name('dashboard');
+    Route::get('/dashboard', [UserController::class, 'index'])->name('dashboard');
 });
 
 // Admin + HR

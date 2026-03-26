@@ -212,7 +212,7 @@ class AdminController extends Controller
         $payrollMonthLabel = $payrollMonthDate->format('F Y');
 
         // Reqruitment Section
-        $openPositions = \Illuminate\Support\Facades\Schema::hasTable('job_positions')
+        $openPositions = Schema::hasTable('job_positions')
             ? JobPosition::withCount('applications')
             ->where('status', 'active')
             ->latest()
@@ -220,14 +220,14 @@ class AdminController extends Controller
             ->get()
             : collect();
 
-        $recentApplications = \Illuminate\Support\Facades\Schema::hasTable('job_applications')
+        $recentApplications = Schema::hasTable('job_applications')
             ? JobApplication::with('jobPosition')
             ->latest()
             ->take(5)
             ->get()
             : collect();
 
-        $upcomingInterviews = \Illuminate\Support\Facades\Schema::hasTable('interviews')
+        $upcomingInterviews = Schema::hasTable('interviews')
             ? Interview::with('jobApplication.jobPosition')
             ->where('scheduled_at', '>=', now())
             ->where('status', 'scheduled')
@@ -246,7 +246,7 @@ class AdminController extends Controller
         // performance Section
         $recentPerformanceReviews = collect();
 
-        if (\Illuminate\Support\Facades\Schema::hasTable('performance_reviews')) {
+        if (Schema::hasTable('performance_reviews')) {
             $performanceOverview['avg_score'] = round(
                 (float) PerformanceReview::where('status', 'completed')->avg('score'),
                 1
@@ -262,7 +262,7 @@ class AdminController extends Controller
                 ->get();
         }
 
-        if (\Illuminate\Support\Facades\Schema::hasTable('performance_goals')) {
+        if (Schema::hasTable('performance_goals')) {
             $totalGoals     = PerformanceGoal::count();
             $completedGoals = PerformanceGoal::where('status', 'completed')->count();
 
@@ -272,7 +272,7 @@ class AdminController extends Controller
         }
 
         // Notification section
-        $recentNotifications = \Illuminate\Support\Facades\Schema::hasTable('notifications')
+        $recentNotifications = Schema::hasTable('notifications')
             ? Notification::latest()->take(10)->get()
             : collect();
 
@@ -297,6 +297,7 @@ class AdminController extends Controller
         $unreadNotificationCount = Schema::hasTable('notifications')
             ? Notification::where('is_read', false)->count()
             : 0;
+            
         return view('admin.dashboard', compact(
             'employees',
             'allEmployees',
