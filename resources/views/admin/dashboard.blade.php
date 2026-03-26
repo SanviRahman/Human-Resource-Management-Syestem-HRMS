@@ -2061,38 +2061,35 @@
             <div class="custom-card">
                 <h6 class="mb-4 text-dark fw-bold">Recent Notifications</h6>
 
-                <div class="notification-alert-item bg-light-blue border-blue">
-                    <div class="d-flex align-items-start gap-3">
-                        <div class="mt-1"><span class="notif-dot bg-blue"></span></div>
-                        <div>
-                            <h6 class="fw-bold mb-1 text-dark">Leave Request Approval</h6>
-                            <p class="text-muted small mb-1">Sarah Johnson's vacation request has been approved</p>
-                            <p class="text-muted small mb-0" style="font-size: 0.75rem;">2 hours ago</p>
-                        </div>
-                    </div>
-                </div>
+                @forelse($recentNotifications as $notification)
+                @php
+                $wrapperClass = 'bg-light-blue border-blue';
+                $dotClass = 'bg-blue';
 
-                <div class="notification-alert-item bg-light-green border-green mt-3">
-                    <div class="d-flex align-items-start gap-3">
-                        <div class="mt-1"><span class="notif-dot bg-green"></span></div>
-                        <div>
-                            <h6 class="fw-bold mb-1 text-dark">New Employee Onboarding</h6>
-                            <p class="text-muted small mb-1">Alex Rivera has completed onboarding process</p>
-                            <p class="text-muted small mb-0" style="font-size: 0.75rem;">4 hours ago</p>
-                        </div>
-                    </div>
-                </div>
+                if ($notification->type === 'success') {
+                $wrapperClass = 'bg-light-green border-green';
+                $dotClass = 'bg-green';
+                } elseif ($notification->type === 'warning') {
+                $wrapperClass = 'bg-light-yellow border-yellow';
+                $dotClass = 'bg-yellow';
+                }
+                @endphp
 
-                <div class="notification-alert-item bg-light-yellow border-yellow mt-3">
+                <div class="notification-alert-item {{ $wrapperClass }} {{ !$loop->first ? 'mt-3' : '' }}">
                     <div class="d-flex align-items-start gap-3">
-                        <div class="mt-1"><span class="notif-dot bg-yellow"></span></div>
+                        <div class="mt-1"><span class="notif-dot {{ $dotClass }}"></span></div>
                         <div>
-                            <h6 class="fw-bold mb-1 text-dark">Performance Review Reminder</h6>
-                            <p class="text-muted small mb-1">Q1 performance reviews are due in 3 days</p>
-                            <p class="text-muted small mb-0" style="font-size: 0.75rem;">1 day ago</p>
+                            <h6 class="fw-bold mb-1 text-dark">{{ $notification->title }}</h6>
+                            <p class="text-muted small mb-1">{{ $notification->message }}</p>
+                            <p class="text-muted small mb-0" style="font-size: 0.75rem;">
+                                {{ $notification->created_at?->diffForHumans() }}
+                            </p>
                         </div>
                     </div>
                 </div>
+                @empty
+                <p class="text-muted mb-0">No notifications found.</p>
+                @endforelse
 
             </div>
         </div>

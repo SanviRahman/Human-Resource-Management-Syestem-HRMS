@@ -10,6 +10,7 @@ use App\Models\Interview;
 use App\Models\JobApplication;
 use App\Models\JobPosition;
 use App\Models\LeaveRequest;
+use App\Models\Notification;
 use App\Models\Payroll;
 use App\Models\PerformanceGoal;
 use App\Models\PerformanceReview;
@@ -268,6 +269,11 @@ class AdminController extends Controller
                 : 0;
         }
 
+        // Notification section
+        $recentNotifications = \Illuminate\Support\Facades\Schema::hasTable('notifications')
+            ? Notification::latest()->take(10)->get()
+            : collect();
+
         return view('admin.dashboard', compact(
             'employees',
             'allEmployees',
@@ -303,6 +309,7 @@ class AdminController extends Controller
             'upcomingInterviews',
             'performanceOverview',
             'recentPerformanceReviews',
+            'recentNotifications',
         ));
     }
 }
