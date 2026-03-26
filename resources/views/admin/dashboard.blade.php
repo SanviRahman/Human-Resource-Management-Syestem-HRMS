@@ -1405,7 +1405,7 @@
             </div>
         </div>
 
-        <!-- Attendance Section -->
+
         <!-- Attendance Section -->
         <div id="attendance" class="content-section">
             @if(session('success'))
@@ -1722,7 +1722,6 @@
         </div>
 
         <!-- Payroll Section -->
-
         <div id="payroll" class="content-section">
             @if(session('success'))
             <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -1749,6 +1748,11 @@
                         style="font-size: 0.9rem; font-weight: 500;">
                         <i class="material-icons-round text-muted" style="font-size: 18px;">filter_alt</i> Filter
                     </button>
+
+                    <a href="{{ route('admin.dashboard', ['tab' => 'payroll']) }}"
+                        class="btn btn-outline-secondary d-flex align-items-center gap-2 px-3">
+                        <i class="material-icons-round" style="font-size: 18px;">restart_alt</i> Reset
+                    </a>
                 </form>
 
                 <div class="d-flex gap-2 flex-wrap">
