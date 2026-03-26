@@ -1991,6 +1991,7 @@
         </div>
 
         <!-- Performance Management Section -->
+
         <div id="performance" class="content-section">
 
             <div class="performance-banner mb-4">
@@ -2006,18 +2007,24 @@
                         <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom border-light"
                             style="border-color: #f3f4f6 !important;">
                             <span class="text-dark" style="font-weight: 500;">Avg. Performance Score</span>
-                            <span class="fw-bold text-success" style="font-size: 1.1rem;">4.2/5.0</span>
+                            <span class="fw-bold text-success" style="font-size: 1.1rem;">
+                                {{ number_format($performanceOverview['avg_score'] ?? 0, 1) }}/5.0
+                            </span>
                         </div>
 
                         <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom border-light"
                             style="border-color: #f3f4f6 !important;">
                             <span class="text-dark" style="font-weight: 500;">Reviews Completed</span>
-                            <span class="fw-bold text-dark" style="font-size: 1.1rem;">23/30</span>
+                            <span class="fw-bold text-dark" style="font-size: 1.1rem;">
+                                {{ $performanceOverview['completed_reviews'] ?? 0 }}/{{ $performanceOverview['total_reviews'] ?? 0 }}
+                            </span>
                         </div>
 
                         <div class="d-flex justify-content-between align-items-center">
                             <span class="text-dark" style="font-weight: 500;">Goals Met</span>
-                            <span class="fw-bold" style="font-size: 1.1rem; color: #3b82f6;">85%</span>
+                            <span class="fw-bold" style="font-size: 1.1rem; color: #3b82f6;">
+                                {{ $performanceOverview['goals_met_percentage'] ?? 0 }}%
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -2026,15 +2033,17 @@
                     <div class="custom-card h-100">
                         <h6 class="mb-4 text-dark fw-bold">Recent Reviews</h6>
 
-                        <div class="review-item">
-                            <h6 class="fw-bold mb-1 text-dark">John Doe</h6>
-                            <p class="text-muted small mb-0">Q1 2024 Review &bull; Score: 4.5/5</p>
+                        @forelse($recentPerformanceReviews as $review)
+                        <div class="review-item {{ !$loop->first ? 'mt-3' : '' }}">
+                            <h6 class="fw-bold mb-1 text-dark">{{ $review->employee->name ?? 'N/A' }}</h6>
+                            <p class="text-muted small mb-0">
+                                {{ $review->review_period ?? 'Review' }} &bull; Score:
+                                {{ number_format($review->score, 1) }}/5
+                            </p>
                         </div>
-
-                        <div class="review-item mt-3">
-                            <h6 class="fw-bold mb-1 text-dark">Sarah Johnson</h6>
-                            <p class="text-muted small mb-0">Q1 2024 Review &bull; Score: 4.2/5</p>
-                        </div>
+                        @empty
+                        <p class="text-muted mb-0">No recent reviews found.</p>
+                        @endforelse
                     </div>
                 </div>
             </div>

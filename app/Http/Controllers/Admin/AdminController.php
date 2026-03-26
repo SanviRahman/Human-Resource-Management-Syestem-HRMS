@@ -11,6 +11,8 @@ use App\Models\JobApplication;
 use App\Models\JobPosition;
 use App\Models\LeaveRequest;
 use App\Models\Payroll;
+use App\Models\PerformanceGoal;
+use App\Models\PerformanceReview;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -231,6 +233,41 @@ class AdminController extends Controller
             ->get()
             : collect();
 
+        $performanceOverview = [
+            'avg_score'            => 0,
+            'completed_reviews'    => 0,
+            'total_reviews'        => 0,
+            'goals_met_percentage' => 0,
+        ];
+
+        // performance Section
+        $recentPerformanceReviews = collect();
+
+        if (\Illuminate\Support\Facades\Schema::hasTable('performance_reviews')) {
+            $performanceOverview['avg_score'] = round(
+                (float) PerformanceReview::where('status', 'completed')->avg('score'),
+                1
+            );
+
+            $performanceOverview['completed_reviews'] = PerformanceReview::where('status', 'completed')->count();
+            $performanceOverview['total_reviews']     = PerformanceReview::count();
+
+            $recentPerformanceReviews = PerformanceReview::with('employee')
+                ->where('status', 'completed')
+                ->latest('review_date')
+                ->take(5)
+                ->get();
+        }
+
+        if (\Illuminate\Support\Facades\Schema::hasTable('performance_goals')) {
+            $totalGoals     = PerformanceGoal::count();
+            $completedGoals = PerformanceGoal::where('status', 'completed')->count();
+
+            $performanceOverview['goals_met_percentage'] = $totalGoals > 0
+                ? round(($completedGoals / $totalGoals) * 100)
+                : 0;
+        }
+
         return view('admin.dashboard', compact(
             'employees',
             'allEmployees',
@@ -264,6 +301,8 @@ class AdminController extends Controller
             'openPositions',
             'recentApplications',
             'upcomingInterviews',
+            'performanceOverview',
+            'recentPerformanceReviews',
         ));
     }
 }

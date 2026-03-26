@@ -32,6 +32,8 @@ class DatabaseSeeder extends Seeder
             JobPositionSeeder::class,
             JobApplicationSeeder::class,
             InterviewSeeder::class,
+            PerformanceReviewSeeder::class,
+            PerformanceGoalSeeder::class,
         ]);
     }
 }

@@ -35,4 +35,14 @@ class Employee extends Model
     {
         return $this->hasMany(Payroll::class);
     }
+
+    public function performanceReviews()
+    {
+        return $this->hasMany(PerformanceReview::class);
+    }
+
+    public function performanceGoals()
+    {
+        return $this->hasMany(PerformanceGoal::class);
+    }
 }
