@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\AttendanceController;
 use App\Http\Controllers\Admin\EmployeeController;
 use App\Http\Controllers\Admin\LeaveRequestController;
+use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\PayrollController;
 use App\Http\Controllers\Auth\AuthenticController;
 use Illuminate\Support\Facades\Route;
@@ -28,6 +29,8 @@ Route::middleware(['auth', 'role:admin'])
         Route::resource('attendances', AttendanceController::class)->except(['show', 'create', 'edit', 'index']);
         Route::resource('leave-requests', LeaveRequestController::class)->except(['show', 'create', 'edit', 'index']);
         Route::resource('payrolls', PayrollController::class)->except(['show', 'create', 'edit', 'index']);
+        Route::post('/notifications/read-all', [NotificationController::class, 'readAll'])
+            ->name('notifications.read-all');
     });
 
 // HR

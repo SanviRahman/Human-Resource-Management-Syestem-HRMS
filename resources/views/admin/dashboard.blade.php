@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>HRMS Portal Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
@@ -1053,13 +1054,19 @@
 <body>
 
     <div class="mobile-header">
-        <button class="mobile-menu-btn" onclick="toggleSidebar()">
+        <button class="mobile-menu-btn" type="button" onclick="toggleSidebar()">
             <span class="material-icons-round">menu</span>
         </button>
+
         <h5 class="m-0 fw-bold" id="mobile-page-title">Dashboard</h5>
-        <div class="notification-icon">
+
+        <div class="notification-icon js-open-notifications" style="cursor: pointer;">
             <i class="material-icons-round">notifications</i>
-            <span class="notification-badge">3</span>
+            @if(($unreadNotificationCount ?? 0) > 0)
+            <span class="notification-badge">
+                {{ $unreadNotificationCount > 99 ? '99+' : $unreadNotificationCount }}
+            </span>
+            @endif
         </div>
     </div>
 
@@ -1068,69 +1075,74 @@
     <div id="sidebar">
         <div class="sidebar-brand">
             HRMS Portal
-            <button class="close-sidebar" onclick="toggleSidebar()">
+            <button class="close-sidebar" type="button" onclick="toggleSidebar()">
                 <span class="material-icons-round">close</span>
             </button>
         </div>
+
         <div class="sidebar-nav">
-            <a class="nav-item-link dashboard-icon active" data-section="dashboard"
-                onclick="switchTab('dashboard', this)">
+            <a href="#" class="nav-item-link dashboard-icon active" data-section="dashboard">
                 <i class="material-icons-round">bar_chart</i> Dashboard
             </a>
 
-            <a class="nav-item-link employee-icon" data-section="employee" onclick="switchTab('employee', this)">
+            <a href="#" class="nav-item-link employee-icon" data-section="employee">
                 <i class="material-icons-round">groups</i> Employee Management
             </a>
 
-            <a class="nav-item-link attendance-icon" data-section="attendance" onclick="switchTab('attendance', this)">
+            <a href="#" class="nav-item-link attendance-icon" data-section="attendance">
                 <i class="material-icons-round">calendar_month</i> Attendance & Leave
             </a>
 
-            <a class="nav-item-link payroll-icon" data-section="payroll" onclick="switchTab('payroll', this)">
+            <a href="#" class="nav-item-link payroll-icon" data-section="payroll">
                 <i class="material-icons-round">monetization_on</i> Payroll Management
             </a>
 
-            <a class="nav-item-link recruitment-icon" data-section="recruitment"
-                onclick="switchTab('recruitment', this)">
+            <a href="#" class="nav-item-link recruitment-icon" data-section="recruitment">
                 <i class="material-icons-round">track_changes</i> Recruitment
             </a>
 
-            <a class="nav-item-link performance-icon" data-section="performance"
-                onclick="switchTab('performance', this)">
+            <a href="#" class="nav-item-link performance-icon" data-section="performance">
                 <i class="material-icons-round">trending_up</i> Performance Management
             </a>
 
-            <a class="nav-item-link notifications-icon" data-section="notifications"
-                onclick="switchTab('notifications', this)">
+            <a href="#" class="nav-item-link notifications-icon" data-section="notifications">
                 <i class="material-icons-round">notifications</i> Notifications
             </a>
 
-            <a class="nav-item-link settings-icon" data-section="settings" onclick="switchTab('settings', this)">
+            <a href="#" class="nav-item-link settings-icon" data-section="settings">
                 <i class="material-icons-round">settings</i> Admin Settings
             </a>
-            <a class="nav-item-link logout-icon">
-                <form method="POST" action="{{ route('logout') }}" class="d-inline">
+
+            <div class="nav-item-link logout-icon">
+                <form method="POST" action="{{ route('logout') }}" class="d-inline w-100">
                     @csrf
                     <button type="submit"
-                        class="btn btn-outline-danger btn-sm fw-bold shadow-sm px-4 py-2 d-flex align-items-center gap-2 rounded-pill transition-all hover-shadow">
-
+                        class="btn btn-outline-danger btn-sm fw-bold shadow-sm px-4 py-2 d-flex align-items-center gap-2 rounded-pill w-100 justify-content-center">
                         <i class="material-icons-round">logout</i> Logout
                     </button>
                 </form>
-            </a>
+            </div>
         </div>
+
         <div class="sidebar-footer">
             <div class="admin-badge">Admin Access</div>
         </div>
     </div>
 
+
+
     <!-- Main Content -->
     <div id="main-content">
         <div class="top-header desktop-top-header">
             <h4 id="page-title">Dashboard</h4>
-            <div class="notification-icon">
+
+            <div class="notification-icon js-open-notifications" style="cursor: pointer;">
                 <i class="material-icons-round">notifications</i>
-                <span class="notification-badge">3</span>
+                @if(($unreadNotificationCount ?? 0) > 0)
+                <span class="notification-badge">
+                    {{ $unreadNotificationCount > 99 ? '99+' : $unreadNotificationCount }}
+                </span>
+                @endif
             </div>
         </div>
 
@@ -2113,7 +2125,7 @@
                                 <h6 class="fw-bold mb-1 text-dark">Administrator</h6>
                                 <p class="text-muted small mb-0">Full system access</p>
                             </div>
-                            <span class="role-badge bg-light-red text-red">3 users</span>
+                            <span class="role-badge bg-light-red text-red">{{ $roleStats['admin'] ?? 0 }} users</span>
                         </div>
 
                         <div class="role-item">
@@ -2121,7 +2133,7 @@
                                 <h6 class="fw-bold mb-1 text-dark">HR Manager</h6>
                                 <p class="text-muted small mb-0">HR operations access</p>
                             </div>
-                            <span class="role-badge bg-light-blue text-blue">8 users</span>
+                            <span class="role-badge bg-light-blue text-blue">{{ $roleStats['hr'] ?? 0 }} users</span>
                         </div>
 
                         <div class="role-item">
@@ -2129,7 +2141,8 @@
                                 <h6 class="fw-bold mb-1 text-dark">Employee</h6>
                                 <p class="text-muted small mb-0">Limited self-service access</p>
                             </div>
-                            <span class="role-badge bg-light-green text-green">235 users</span>
+                            <span class="role-badge bg-light-green text-green">{{ $roleStats['user'] ?? 0 }}
+                                users</span>
                         </div>
                     </div>
                 </div>
@@ -2140,22 +2153,22 @@
 
                         <div class="setting-item">
                             <span class="text-dark">Company Name</span>
-                            <span class="text-muted">Acme Corporation</span>
+                            <span class="text-muted">{{ $systemSettings->company_name ?? 'N/A' }}</span>
                         </div>
 
                         <div class="setting-item">
                             <span class="text-dark">Fiscal Year</span>
-                            <span class="text-muted">Jan - Dec</span>
+                            <span class="text-muted">{{ $systemSettings->fiscal_year ?? 'N/A' }}</span>
                         </div>
 
                         <div class="setting-item">
                             <span class="text-dark">Currency</span>
-                            <span class="text-muted">USD ($)</span>
+                            <span class="text-muted">{{ $systemSettings->currency ?? 'N/A' }}</span>
                         </div>
 
                         <div class="setting-item">
                             <span class="text-dark">Time Zone</span>
-                            <span class="text-muted">EST (UTC-5)</span>
+                            <span class="text-muted">{{ $systemSettings->time_zone ?? 'N/A' }}</span>
                         </div>
                     </div>
                 </div>
@@ -2605,127 +2618,235 @@
         </div>
     </div>
 
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
     <script>
+    let isMarkingNotificationsRead = false;
+
     function toggleSidebar() {
         const sidebar = document.getElementById('sidebar');
         const overlay = document.getElementById('sidebar-overlay');
+
+        if (!sidebar || !overlay) return;
+
         sidebar.classList.toggle('show-sidebar');
         overlay.style.display = sidebar.classList.contains('show-sidebar') ? 'block' : 'none';
     }
 
-    function switchTab(sectionId, element) {
-        document.querySelectorAll('.nav-item-link').forEach(link => link.classList.remove('active'));
-        element.classList.add('active');
+    function getPageTitleFromLink(link) {
+        if (!link) return 'Dashboard';
 
-        document.querySelectorAll('.content-section').forEach(sec => sec.classList.remove('active'));
-        document.getElementById(sectionId).classList.add('active');
-
-        const tempElement = element.cloneNode(true);
-        const icon = tempElement.querySelector('.material-icons-round');
+        const cloned = link.cloneNode(true);
+        const icon = cloned.querySelector('.material-icons-round');
         if (icon) icon.remove();
 
-        const pageTitleText = tempElement.textContent.replace(/\s+/g, ' ').trim();
-        document.getElementById('page-title').innerText = pageTitleText;
-        document.getElementById('mobile-page-title').innerText = pageTitleText;
-
-        const url = new URL(window.location.href);
-        url.searchParams.set('tab', sectionId);
-        window.history.replaceState({}, '', url);
-
-        if (window.innerWidth < 992) toggleSidebar();
+        return cloned.textContent.replace(/\s+/g, ' ').trim() || 'Dashboard';
     }
 
-    document.addEventListener('DOMContentLoaded', function() {
-        // open tab from query string
-        const urlParams = new URLSearchParams(window.location.search);
-        const activeTab = urlParams.get('tab');
+    function removeNotificationBadges() {
+        document.querySelectorAll('.notification-badge').forEach(badge => badge.remove());
+    }
 
-        if (activeTab) {
-            const targetLink = document.querySelector(`.nav-item-link[data-section="${activeTab}"]`);
-            if (targetLink) {
-                switchTab(activeTab, targetLink);
+    async function markNotificationsAsRead() {
+        if (isMarkingNotificationsRead) return;
+
+        isMarkingNotificationsRead = true;
+
+        try {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+            const response = await fetch("{{ route('admin.notifications.read-all') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({})
+            });
+
+            if (response.ok) {
+                removeNotificationBadges();
             }
+        } catch (error) {
+            console.error('Failed to mark notifications as read:', error);
+        } finally {
+            isMarkingNotificationsRead = false;
+        }
+    }
+
+    function switchTab(sectionId, element = null, options = {}) {
+        const {
+            updateUrl = true,
+                closeMobileSidebar = true
+        } = options;
+
+        if (!sectionId) return;
+
+        document.querySelectorAll('.nav-item-link[data-section]').forEach(link => {
+            link.classList.remove('active');
+        });
+
+        if (element) {
+            element.classList.add('active');
         } else {
-            const defaultLink = document.querySelector('.nav-item-link[data-section="dashboard"]');
-            if (defaultLink) {
-                switchTab('dashboard', defaultLink);
+            const matchedLink = document.querySelector('.nav-item-link[data-section="' + sectionId + '"]');
+            if (matchedLink) {
+                matchedLink.classList.add('active');
+                element = matchedLink;
             }
         }
 
-        // edit modal populate
-        const editButtons = document.querySelectorAll('.editEmployeeBtn');
-        const editForm = document.getElementById('editEmployeeForm');
+        document.querySelectorAll('.content-section').forEach(section => {
+            section.classList.remove('active');
+        });
 
-        editButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                const id = this.dataset.id;
-                const name = this.dataset.name;
-                const email = this.dataset.email;
-                const department = this.dataset.department;
-                const designation = this.dataset.designation;
-                const status = this.dataset.status;
-                const joiningDate = this.dataset.joiningDate;
+        const targetSection = document.getElementById(sectionId);
+        if (targetSection) {
+            targetSection.classList.add('active');
+        }
 
-                editForm.action = `/admin/employees/${id}`;
-                document.getElementById('edit_name').value = name ?? '';
-                document.getElementById('edit_email').value = email ?? '';
-                document.getElementById('edit_department').value = department ?? '';
-                document.getElementById('edit_designation').value = designation ?? '';
-                document.getElementById('edit_status').value = status ?? 'active';
-                document.getElementById('edit_joining_date').value = joiningDate ?? '';
+        const pageTitleText = getPageTitleFromLink(element);
+
+        const pageTitle = document.getElementById('page-title');
+        const mobilePageTitle = document.getElementById('mobile-page-title');
+
+        if (pageTitle) pageTitle.textContent = pageTitleText;
+        if (mobilePageTitle) mobilePageTitle.textContent = pageTitleText;
+
+        if (updateUrl) {
+            const url = new URL(window.location.href);
+            url.searchParams.set('tab', sectionId);
+            window.history.replaceState({}, '', url);
+        }
+
+        if (sectionId === 'notifications') {
+            markNotificationsAsRead();
+        }
+
+        if (closeMobileSidebar && window.innerWidth < 992) {
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar && sidebar.classList.contains('show-sidebar')) {
+                toggleSidebar();
+            }
+        }
+    }
+
+    function openNotificationsTab() {
+        const notificationLink = document.querySelector('.nav-item-link[data-section="notifications"]');
+        switchTab('notifications', notificationLink);
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Sidebar navigation
+        document.querySelectorAll('.nav-item-link[data-section]').forEach(link => {
+            link.addEventListener('click', function(event) {
+                event.preventDefault();
+                const sectionId = this.dataset.section;
+                switchTab(sectionId, this);
             });
         });
-    });
 
-    //Attendance edit modal populate
-    document.addEventListener('DOMContentLoaded', function() {
-        const editAttendanceButtons = document.querySelectorAll('.editAttendanceBtn');
+        // Desktop + mobile bell click
+        document.querySelectorAll('.js-open-notifications').forEach(icon => {
+            icon.addEventListener('click', function() {
+                openNotificationsTab();
+            });
+        });
+
+        // Load active tab from query string
+        const urlParams = new URLSearchParams(window.location.search);
+        const activeTab = urlParams.get('tab') || 'dashboard';
+
+        const activeLink = document.querySelector('.nav-item-link[data-section="' + activeTab + '"]');
+        if (activeLink) {
+            switchTab(activeTab, activeLink, {
+                updateUrl: false,
+                closeMobileSidebar: false
+            });
+        } else {
+            const dashboardLink = document.querySelector('.nav-item-link[data-section="dashboard"]');
+            if (dashboardLink) {
+                switchTab('dashboard', dashboardLink, {
+                    updateUrl: false,
+                    closeMobileSidebar: false
+                });
+            }
+        }
+
+        // Employee edit modal populate
+        const editEmployeeForm = document.getElementById('editEmployeeForm');
+        document.querySelectorAll('.editEmployeeBtn').forEach(button => {
+            button.addEventListener('click', function() {
+                if (!editEmployeeForm) return;
+
+                editEmployeeForm.action = '/admin/employees/' + this.dataset.id;
+
+                const editName = document.getElementById('edit_name');
+                const editEmail = document.getElementById('edit_email');
+                const editDepartment = document.getElementById('edit_department');
+                const editDesignation = document.getElementById('edit_designation');
+                const editStatus = document.getElementById('edit_status');
+                const editJoiningDate = document.getElementById('edit_joining_date');
+
+                if (editName) editName.value = this.dataset.name || '';
+                if (editEmail) editEmail.value = this.dataset.email || '';
+                if (editDepartment) editDepartment.value = this.dataset.department || '';
+                if (editDesignation) editDesignation.value = this.dataset.designation || '';
+                if (editStatus) editStatus.value = this.dataset.status || 'active';
+                if (editJoiningDate) editJoiningDate.value = this.dataset.joiningDate || '';
+            });
+        });
+
+        // Attendance edit modal populate
         const editAttendanceForm = document.getElementById('editAttendanceForm');
-
-        editAttendanceButtons.forEach(button => {
+        document.querySelectorAll('.editAttendanceBtn').forEach(button => {
             button.addEventListener('click', function() {
-                const id = this.dataset.id;
-                const employeeId = this.dataset.employeeId;
-                const attendanceDate = this.dataset.attendanceDate;
-                const checkIn = this.dataset.checkIn;
-                const checkOut = this.dataset.checkOut;
-                const status = this.dataset.status;
+                if (!editAttendanceForm) return;
 
-                editAttendanceForm.action = `/admin/attendances/${id}`;
-                document.getElementById('edit_attendance_employee_id').value = employeeId || '';
-                document.getElementById('edit_attendance_date').value = attendanceDate || '';
-                document.getElementById('edit_check_in').value = checkIn || '';
-                document.getElementById('edit_check_out').value = checkOut || '';
-                document.getElementById('edit_attendance_status').value = status || 'present';
+                editAttendanceForm.action = '/admin/attendances/' + this.dataset.id;
+
+                const attendanceEmployee = document.getElementById(
+                    'edit_attendance_employee_id');
+                const attendanceDate = document.getElementById('edit_attendance_date');
+                const checkIn = document.getElementById('edit_check_in');
+                const checkOut = document.getElementById('edit_check_out');
+                const attendanceStatus = document.getElementById('edit_attendance_status');
+
+                if (attendanceEmployee) attendanceEmployee.value = this.dataset.employeeId ||
+                '';
+                if (attendanceDate) attendanceDate.value = this.dataset.attendanceDate || '';
+                if (checkIn) checkIn.value = this.dataset.checkIn || '';
+                if (checkOut) checkOut.value = this.dataset.checkOut || '';
+                if (attendanceStatus) attendanceStatus.value = this.dataset.status || 'present';
             });
         });
-    });
 
-    //Payroll edit modal populate
-    document.addEventListener('DOMContentLoaded', function() {
-        const editPayrollButtons = document.querySelectorAll('.editPayrollBtn');
+        // Payroll edit modal populate
         const editPayrollForm = document.getElementById('editPayrollForm');
-
-        editPayrollButtons.forEach(button => {
+        document.querySelectorAll('.editPayrollBtn').forEach(button => {
             button.addEventListener('click', function() {
-                const id = this.dataset.id;
-                const employeeId = this.dataset.employeeId;
-                const payrollMonth = this.dataset.payrollMonth;
-                const basicSalary = this.dataset.basicSalary;
-                const allowance = this.dataset.allowance;
-                const deduction = this.dataset.deduction;
-                const tax = this.dataset.tax;
-                const status = this.dataset.status;
+                if (!editPayrollForm) return;
 
-                editPayrollForm.action = `/admin/payrolls/${id}`;
-                document.getElementById('edit_payroll_employee_id').value = employeeId || '';
-                document.getElementById('edit_payroll_month').value = payrollMonth || '';
-                document.getElementById('edit_basic_salary').value = basicSalary || 0;
-                document.getElementById('edit_allowance').value = allowance || 0;
-                document.getElementById('edit_deduction').value = deduction || 0;
-                document.getElementById('edit_tax').value = tax || 0;
-                document.getElementById('edit_payroll_status').value = status || 'pending';
+                editPayrollForm.action = '/admin/payrolls/' + this.dataset.id;
+
+                const payrollEmployee = document.getElementById('edit_payroll_employee_id');
+                const payrollMonth = document.getElementById('edit_payroll_month');
+                const basicSalary = document.getElementById('edit_basic_salary');
+                const allowance = document.getElementById('edit_allowance');
+                const deduction = document.getElementById('edit_deduction');
+                const tax = document.getElementById('edit_tax');
+                const payrollStatus = document.getElementById('edit_payroll_status');
+
+                if (payrollEmployee) payrollEmployee.value = this.dataset.employeeId || '';
+                if (payrollMonth) payrollMonth.value = this.dataset.payrollMonth || '';
+                if (basicSalary) basicSalary.value = this.dataset.basicSalary || 0;
+                if (allowance) allowance.value = this.dataset.allowance || 0;
+                if (deduction) deduction.value = this.dataset.deduction || 0;
+                if (tax) tax.value = this.dataset.tax || 0;
+                if (payrollStatus) payrollStatus.value = this.dataset.status || 'pending';
             });
         });
     });

@@ -14,6 +14,8 @@ use App\Models\Notification;
 use App\Models\Payroll;
 use App\Models\PerformanceGoal;
 use App\Models\PerformanceReview;
+use App\Models\SystemSetting;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -274,6 +276,27 @@ class AdminController extends Controller
             ? Notification::latest()->take(10)->get()
             : collect();
 
+        //Admin settings section
+        $roleStats = [
+            'admin' => 0,
+            'hr'    => 0,
+            'user'  => 0,
+        ];
+
+        if (Schema::hasTable('users')) {
+            $roleStats['admin'] = User::where('role', 'admin')->count();
+            $roleStats['hr']    = User::where('role', 'hr')->count();
+            $roleStats['user']  = User::where('role', 'user')->count();
+        }
+
+        $systemSettings = Schema::hasTable('system_settings')
+            ? SystemSetting::first()
+            : null;
+
+        // Notification count
+        $unreadNotificationCount = Schema::hasTable('notifications')
+            ? Notification::where('is_read', false)->count()
+            : 0;
         return view('admin.dashboard', compact(
             'employees',
             'allEmployees',
@@ -310,6 +333,9 @@ class AdminController extends Controller
             'performanceOverview',
             'recentPerformanceReviews',
             'recentNotifications',
+            'roleStats',
+            'systemSettings',
+            'unreadNotificationCount',
         ));
     }
 }

@@ -35,6 +35,7 @@ class DatabaseSeeder extends Seeder
             PerformanceReviewSeeder::class,
             PerformanceGoalSeeder::class,
             NotificationSeeder::class,
+            SystemSettingSeeder::class,
         ]);
     }
 }
