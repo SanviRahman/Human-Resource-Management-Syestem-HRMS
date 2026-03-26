@@ -25,11 +25,11 @@ Route::middleware(['auth', 'role:admin'])
     ->group(function () {
         Route::get('/dashboard', [AdminController::class, 'index'])->name('dashboard');
 
-        // resourceful route for employee CRUD
         Route::resource('employees', EmployeeController::class)->except(['show', 'create', 'edit', 'index']);
         Route::resource('attendances', AttendanceController::class)->except(['show', 'create', 'edit', 'index']);
         Route::resource('leave-requests', LeaveRequestController::class)->except(['show', 'create', 'edit', 'index']);
         Route::resource('payrolls', PayrollController::class)->except(['show', 'create', 'edit', 'index']);
+
         Route::post('/notifications/read-all', [NotificationController::class, 'readAll'])
             ->name('notifications.read-all');
     });
@@ -44,6 +44,7 @@ Route::middleware(['auth', 'role:hr'])->group(function () {
 // User
 Route::middleware(['auth', 'role:user'])->group(function () {
     Route::get('/dashboard', [UserController::class, 'index'])->name('dashboard');
+    Route::post('/leave-requests', [UserController::class, 'storeLeaveRequest'])->name('user.leave-requests.store');
 });
 
 // Admin + HR

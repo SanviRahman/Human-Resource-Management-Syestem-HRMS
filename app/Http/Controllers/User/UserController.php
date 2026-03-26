@@ -1,168 +1,256 @@
 <?php
+
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
-use App\Models\Activity;
+use App\Models\Attendance;
 use App\Models\Employee;
-use App\Models\Event;
 use App\Models\LeaveRequest;
 use App\Models\Notification;
-use App\Models\Payroll;
 use Carbon\Carbon;
+use Carbon\CarbonPeriod;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 class UserController extends Controller
 {
     public function index(Request $request)
     {
-        $search     = $request->get('search');
-        $department = $request->get('department');
+        $user = auth()->user();
+        $employee = $this->getAuthenticatedEmployee();
 
-        $employeeQuery = Employee::query();
+        $year = (int) $request->get('year', now()->year);
+        $month = (int) $request->get('month', now()->month);
 
-        if (! empty($search)) {
-            $employeeQuery->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%")
-                    ->orWhere('designation', 'like', "%{$search}%")
-                    ->orWhere('department', 'like', "%{$search}%");
-            });
+        $calendarDate = Carbon::create($year, $month, 1);
+        $monthStart = $calendarDate->copy()->startOfMonth();
+        $monthEnd = $calendarDate->copy()->endOfMonth();
+
+        $recentNotifications = collect();
+        $unreadNotificationCount = 0;
+
+        if (Schema::hasTable('notifications') && class_exists(Notification::class)) {
+            $notificationQuery = Notification::query()->latest();
+
+            if ($employee && Schema::hasColumn('notifications', 'employee_id')) {
+                $notificationQuery->where('employee_id', $employee->id);
+            }
+
+            $recentNotifications = (clone $notificationQuery)->take(10)->get();
+
+            if (Schema::hasColumn('notifications', 'is_read')) {
+                $unreadNotificationCount = (clone $notificationQuery)
+                    ->where('is_read', false)
+                    ->count();
+            }
         }
 
-        if (! empty($department) && $department !== 'all') {
-            $employeeQuery->where('department', $department);
+        if (! $employee) {
+            return view('user.dashboard', [
+                'employee' => null,
+                'totalLeaveDays' => 24,
+                'usedLeaveDays' => 0,
+                'pendingRequestsCount' => 0,
+                'approvedRequestsCount' => 0,
+                'calendarMonthLabel' => $calendarDate->format('F Y'),
+                'calendarDays' => [],
+                'recentAttendance' => collect(),
+                'leaveRequests' => collect(),
+                'recentNotifications' => $recentNotifications,
+                'unreadNotificationCount' => $unreadNotificationCount,
+                'prevMonthUrl' => route('dashboard', [
+                    'tab' => 'attendance',
+                    'month' => $calendarDate->copy()->subMonth()->month,
+                    'year' => $calendarDate->copy()->subMonth()->year,
+                ]),
+                'nextMonthUrl' => route('dashboard', [
+                    'tab' => 'attendance',
+                    'month' => $calendarDate->copy()->addMonth()->month,
+                    'year' => $calendarDate->copy()->addMonth()->year,
+                ]),
+            ]);
         }
 
-        $employees = $employeeQuery
-            ->latest()
-            ->paginate(10)
-            ->withQueryString();
+        $totalLeaveDays = 24;
 
-        $allEmployees = Employee::orderBy('name')->get();
+        $usedLeaveDays = LeaveRequest::where('employee_id', $employee->id)
+            ->where('status', 'approved')
+            ->whereYear('start_date', now()->year)
+            ->sum('days');
 
-        $employeeStats = [
-            'total'     => Employee::count(),
-            'active'    => Employee::where('status', 'active')->count(),
-            'probation' => Employee::where('status', 'probation')->count(),
-            'inactive'  => Employee::where('status', 'inactive')->count(),
-        ];
+        $pendingRequestsCount = LeaveRequest::where('employee_id', $employee->id)
+            ->where('status', 'pending')
+            ->count();
 
-        $departments = Employee::whereNotNull('department')
-            ->where('department', '!=', '')
-            ->distinct()
-            ->orderBy('department')
-            ->pluck('department');
+        $approvedRequestsCount = LeaveRequest::where('employee_id', $employee->id)
+            ->where('status', 'approved')
+            ->count();
 
-        $now        = Carbon::now();
-        $monthStart = $now->copy()->startOfMonth();
-        $monthEnd   = $now->copy()->endOfMonth();
-
-        // dashboard
-        $totalEmployees        = $employeeStats['total'];
-        $activeEmployees       = $employeeStats['active'];
-        $newEmployeesThisMonth = Employee::whereBetween('created_at', [$monthStart, $monthEnd])->count();
-        $activePercentage      = $totalEmployees > 0 ? round(($activeEmployees / $totalEmployees) * 100) : 0;
-
-        $pendingLeaveRequests = Schema::hasTable('leave_requests')
-            ? LeaveRequest::where('status', 'pending')->count()
-            : 0;
-
-        $approvedLeavesThisMonth = Schema::hasTable('leave_requests')
-            ? LeaveRequest::where('status', 'approved')
-            ->whereBetween('created_at', [$monthStart, $monthEnd])
-            ->count()
-            : 0;
-
-        $monthlyPayroll = Schema::hasTable('payrolls')
-            ? Payroll::whereBetween('payroll_month', [
-            $monthStart->toDateString(),
-            $monthEnd->toDateString(),
-        ])->sum('net_pay')
-            : 0;
-
-        $departmentOverview = Employee::select('department', DB::raw('COUNT(*) as total'))
-            ->whereNotNull('department')
-            ->where('department', '!=', '')
-            ->groupBy('department')
-            ->orderByDesc('total')
+        $recentAttendance = Attendance::where('employee_id', $employee->id)
+            ->orderByDesc('attendance_date')
+            ->take(5)
             ->get();
 
-        $maxDepartmentCount = $departmentOverview->max('total') ?: 1;
+        $leaveRequests = LeaveRequest::where('employee_id', $employee->id)
+            ->orderByDesc('created_at')
+            ->take(10)
+            ->get();
 
-        $recentActivities = collect();
-        if (Schema::hasTable('activities') && class_exists(Activity::class)) {
-            $recentActivities = Activity::latest()
-                ->take(5)
-                ->get()
-                ->map(function ($activity) {
-                    return [
-                        'title'     => $activity->title,
-                        'desc'      => $activity->description,
-                        'time'      => $activity->created_at ? $activity->created_at->diffForHumans() : '',
-                        'dot_class' => match ($activity->type) {
-                            'success' => 'dot-green',
-                            'warning' => 'dot-yellow',
-                            default   => 'dot-blue',
-                        },
-                    ];
-                });
+        $attendanceMap = Attendance::where('employee_id', $employee->id)
+            ->whereBetween('attendance_date', [$monthStart->toDateString(), $monthEnd->toDateString()])
+            ->get()
+            ->keyBy(function ($item) {
+                return $item->attendance_date->format('Y-m-d');
+            });
+
+        $approvedLeaves = LeaveRequest::where('employee_id', $employee->id)
+            ->where('status', 'approved')
+            ->where(function ($query) use ($monthStart, $monthEnd) {
+                $query->whereBetween('start_date', [$monthStart->toDateString(), $monthEnd->toDateString()])
+                    ->orWhereBetween('end_date', [$monthStart->toDateString(), $monthEnd->toDateString()])
+                    ->orWhere(function ($q) use ($monthStart, $monthEnd) {
+                        $q->where('start_date', '<=', $monthStart->toDateString())
+                            ->where('end_date', '>=', $monthEnd->toDateString());
+                    });
+            })
+            ->get();
+
+        $leaveDateMap = [];
+
+        foreach ($approvedLeaves as $leave) {
+            $periodStart = $leave->start_date->copy()->lt($monthStart)
+                ? $monthStart->copy()
+                : $leave->start_date->copy();
+
+            $periodEnd = $leave->end_date->copy()->gt($monthEnd)
+                ? $monthEnd->copy()
+                : $leave->end_date->copy();
+
+            foreach (CarbonPeriod::create($periodStart, $periodEnd) as $date) {
+                $leaveDateMap[$date->format('Y-m-d')] = 'leave';
+            }
         }
 
-        $upcomingEvents = collect();
-        if (Schema::hasTable('events') && class_exists(Event::class)) {
-            $upcomingEvents = Event::whereDate('event_date', '>=', $now->toDateString())
-                ->orderBy('event_date')
-                ->take(3)
-                ->get()
-                ->map(function ($event) {
-                    $eventTime = Carbon::parse($event->event_date);
+        $calendarDays = [];
 
-                    return [
-                        'title'    => $event->title,
-                        'subtitle' => $event->subtitle,
-                        'time'     => $eventTime->isToday()
-                            ? 'Today ' . $eventTime->format('h:i A')
-                            : ($eventTime->isTomorrow()
-                                ? 'Tomorrow ' . $eventTime->format('h:i A')
-                                : $eventTime->format('M d, Y h:i A')),
-                        'bg_class' => match ($event->type) {
-                            'success' => 'event-green',
-                            'warning' => 'event-orange',
-                            default   => 'event-blue',
-                        },
-                    ];
-                });
+        for ($i = 0; $i < $monthStart->dayOfWeek; $i++) {
+            $calendarDays[] = null;
         }
 
-        // Notification section
-        $recentNotifications = Schema::hasTable('notifications')
-            ? Notification::latest()->take(10)->get()
-            : collect();
+        for ($day = 1; $day <= $monthEnd->day; $day++) {
+            $date = $monthStart->copy()->day($day);
+            $key = $date->format('Y-m-d');
 
-        // Notification count
-        $unreadNotificationCount = Schema::hasTable('notifications')
-            ? Notification::where('is_read', false)->count()
-            : 0;
+            $status = $leaveDateMap[$key] ?? optional($attendanceMap->get($key))->status;
 
-        return view('user.dashboard', compact(
-            'employees',
-            'allEmployees',
-            'employeeStats',
-            'departments',
-            'totalEmployees',
-            'activeEmployees',
-            'recentNotifications',
-            'newEmployeesThisMonth',
-            'activePercentage',
-            'pendingLeaveRequests',
-            'approvedLeavesThisMonth',
-            'monthlyPayroll',
-            'departmentOverview',
-            'maxDepartmentCount',
-            'recentActivities',
-            'upcomingEvents'
-        ));
+            $calendarDays[] = [
+                'day' => $day,
+                'date' => $key,
+                'status' => $status,
+                'is_today' => $date->isToday(),
+            ];
+        }
+
+        while (count($calendarDays) % 7 !== 0) {
+            $calendarDays[] = null;
+        }
+
+        $prevDate = $calendarDate->copy()->subMonth();
+        $nextDate = $calendarDate->copy()->addMonth();
+
+        return view('user.dashboard', [
+            'employee' => $employee,
+            'totalLeaveDays' => $totalLeaveDays,
+            'usedLeaveDays' => $usedLeaveDays,
+            'pendingRequestsCount' => $pendingRequestsCount,
+            'approvedRequestsCount' => $approvedRequestsCount,
+            'calendarMonthLabel' => $calendarDate->format('F Y'),
+            'calendarDays' => $calendarDays,
+            'recentAttendance' => $recentAttendance,
+            'leaveRequests' => $leaveRequests,
+            'recentNotifications' => $recentNotifications,
+            'unreadNotificationCount' => $unreadNotificationCount,
+            'prevMonthUrl' => route('dashboard', [
+                'tab' => 'attendance',
+                'month' => $prevDate->month,
+                'year' => $prevDate->year,
+            ]),
+            'nextMonthUrl' => route('dashboard', [
+                'tab' => 'attendance',
+                'month' => $nextDate->month,
+                'year' => $nextDate->year,
+            ]),
+        ]);
+    }
+
+    public function storeLeaveRequest(Request $request)
+    {
+        $request->validate([
+            'leave_type' => ['required', 'string', 'max:255'],
+            'start_date' => ['required', 'date'],
+            'end_date' => ['required', 'date', 'after_or_equal:start_date'],
+            'reason' => ['nullable', 'string'],
+        ]);
+
+        $employee = $this->getAuthenticatedEmployee();
+
+        if (! $employee) {
+            return redirect()
+                ->route('dashboard', ['tab' => 'attendance'])
+                ->withInput(['show_leave_modal' => 1])
+                ->withErrors([
+                    'employee' => 'Employee record not linked with this user. Please set employees.user_id = logged in user id.',
+                ]);
+        }
+
+        $startDate = Carbon::parse($request->start_date);
+        $endDate = Carbon::parse($request->end_date);
+        $days = $startDate->diffInDays($endDate) + 1;
+
+        $hasOverlap = LeaveRequest::where('employee_id', $employee->id)
+            ->whereIn('status', ['pending', 'approved'])
+            ->where(function ($query) use ($startDate, $endDate) {
+                $query->whereBetween('start_date', [$startDate->toDateString(), $endDate->toDateString()])
+                    ->orWhereBetween('end_date', [$startDate->toDateString(), $endDate->toDateString()])
+                    ->orWhere(function ($q) use ($startDate, $endDate) {
+                        $q->where('start_date', '<=', $startDate->toDateString())
+                            ->where('end_date', '>=', $endDate->toDateString());
+                    });
+            })
+            ->exists();
+
+        if ($hasOverlap) {
+            return redirect()
+                ->route('dashboard', ['tab' => 'attendance'])
+                ->withInput(['show_leave_modal' => 1])
+                ->withErrors([
+                    'leave_type' => 'You already have a pending or approved leave request within this date range.',
+                ]);
+        }
+
+        LeaveRequest::create([
+            'employee_id' => $employee->id,
+            'leave_type' => $request->leave_type,
+            'start_date' => $startDate->toDateString(),
+            'end_date' => $endDate->toDateString(),
+            'days' => $days,
+            'status' => 'pending',
+            'reason' => $request->reason,
+        ]);
+
+        return redirect()
+            ->route('dashboard', ['tab' => 'attendance'])
+            ->with('success', 'Leave request submitted successfully.');
+    }
+
+    private function getAuthenticatedEmployee()
+    {
+        $user = auth()->user();
+
+        if (! $user) {
+            return null;
+        }
+
+        return Employee::where('user_id', $user->id)->first();
     }
 }

@@ -13,7 +13,7 @@ class User extends Authenticatable
     protected $fillable = [
         'employeeID',
         'password',
-        'role', // Role
+        'role',
     ];
 
     protected $hidden = [
@@ -24,8 +24,12 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function employee()
+    {
+        return $this->hasOne(Employee::class);
     }
 }

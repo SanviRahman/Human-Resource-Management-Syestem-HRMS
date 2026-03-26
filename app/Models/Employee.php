@@ -9,6 +9,7 @@ class Employee extends Model
     protected $table = 'employees';
 
     protected $fillable = [
+        'user_id',
         'name',
         'email',
         'department',
@@ -20,6 +21,11 @@ class Employee extends Model
     protected $casts = [
         'joining_date' => 'date',
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 
     public function attendances()
     {
