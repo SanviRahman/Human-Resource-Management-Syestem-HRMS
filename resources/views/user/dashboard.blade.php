@@ -804,7 +804,7 @@
         <!-- Dashboard Section -->
         <div id="dashboard" class="content-section active">
             <div class="welcome-banner">
-                <h2>Welcome back, {{ $userName }}</h2>
+                <h2>Welcome back to your dashboard</h2>
                 <p>Here's an overview of your attendance, leave balance, and recent requests.</p>
             </div>
 
@@ -1424,7 +1424,7 @@
                     </div>
                 </div>
             </div>
-        </div>>
+        </div>
 
         <!-- Notifications Section -->
         <div id="notifications" class="content-section">
