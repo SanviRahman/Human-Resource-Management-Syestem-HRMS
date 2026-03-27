@@ -7,6 +7,7 @@ use App\Models\Attendance;
 use App\Models\Employee;
 use App\Models\LeaveRequest;
 use App\Models\Notification;
+use App\Models\Payroll;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Illuminate\Http\Request;
@@ -45,6 +46,15 @@ class UserController extends Controller
             }
         }
 
+        $payrollMonthOptions = collect();
+        $selectedPayrollMonth = null;
+        $selectedPayrollMonthLabel = now()->format('F Y');
+        $payrollRecords = collect();
+        $totalPayslips = 0;
+        $totalNetPay = 0;
+        $processedPayslips = 0;
+        $pendingPayslips = 0;
+
         if (! $employee) {
             return view('user.dashboard', [
                 'employee' => null,
@@ -68,6 +78,14 @@ class UserController extends Controller
                     'month' => $calendarDate->copy()->addMonth()->month,
                     'year' => $calendarDate->copy()->addMonth()->year,
                 ]),
+                'payrollMonthOptions' => $payrollMonthOptions,
+                'selectedPayrollMonthValue' => null,
+                'selectedPayrollMonthLabel' => $selectedPayrollMonthLabel,
+                'payrollRecords' => $payrollRecords,
+                'totalPayslips' => $totalPayslips,
+                'totalNetPay' => $totalNetPay,
+                'processedPayslips' => $processedPayslips,
+                'pendingPayslips' => $pendingPayslips,
             ]);
         }
 
@@ -158,6 +176,59 @@ class UserController extends Controller
         $prevDate = $calendarDate->copy()->subMonth();
         $nextDate = $calendarDate->copy()->addMonth();
 
+        // Payroll
+        $payrollMonthOptions = Payroll::where('employee_id', $employee->id)
+            ->orderByDesc('payroll_month')
+            ->get(['payroll_month'])
+            ->map(function ($item) {
+                return Carbon::parse($item->payroll_month)->startOfMonth();
+            })
+            ->unique(function ($item) {
+                return $item->format('Y-m');
+            })
+            ->values();
+
+        $requestedPayrollMonth = $request->get('payroll_month');
+
+        if ($requestedPayrollMonth) {
+            try {
+                $selectedPayrollMonth = Carbon::createFromFormat('Y-m', $requestedPayrollMonth)->startOfMonth();
+            } catch (\Throwable $e) {
+                $selectedPayrollMonth = null;
+            }
+        }
+
+        if (! $selectedPayrollMonth && $payrollMonthOptions->isNotEmpty()) {
+            $selectedPayrollMonth = $payrollMonthOptions->first()->copy();
+        }
+
+        if ($selectedPayrollMonth) {
+            $selectedPayrollMonthLabel = $selectedPayrollMonth->format('F Y');
+
+            $payrollRecords = Payroll::with('employee')
+                ->where('employee_id', $employee->id)
+                ->whereBetween('payroll_month', [
+                    $selectedPayrollMonth->copy()->startOfMonth()->toDateString(),
+                    $selectedPayrollMonth->copy()->endOfMonth()->toDateString(),
+                ])
+                ->orderByDesc('payroll_month')
+                ->get();
+        } else {
+            $payrollRecords = Payroll::with('employee')
+                ->where('employee_id', $employee->id)
+                ->orderByDesc('payroll_month')
+                ->get();
+
+            if ($payrollRecords->isNotEmpty()) {
+                $selectedPayrollMonthLabel = Carbon::parse($payrollRecords->first()->payroll_month)->format('F Y');
+            }
+        }
+
+        $totalPayslips = $payrollRecords->count();
+        $totalNetPay = $payrollRecords->sum('net_pay');
+        $processedPayslips = $payrollRecords->where('status', 'processed')->count();
+        $pendingPayslips = $payrollRecords->where('status', 'pending')->count();
+
         return view('user.dashboard', [
             'employee' => $employee,
             'totalLeaveDays' => $totalLeaveDays,
@@ -180,6 +251,14 @@ class UserController extends Controller
                 'month' => $nextDate->month,
                 'year' => $nextDate->year,
             ]),
+            'payrollMonthOptions' => $payrollMonthOptions,
+            'selectedPayrollMonthValue' => $selectedPayrollMonth ? $selectedPayrollMonth->format('Y-m') : null,
+            'selectedPayrollMonthLabel' => $selectedPayrollMonthLabel,
+            'payrollRecords' => $payrollRecords,
+            'totalPayslips' => $totalPayslips,
+            'totalNetPay' => $totalNetPay,
+            'processedPayslips' => $processedPayslips,
+            'pendingPayslips' => $pendingPayslips,
         ]);
     }
 
