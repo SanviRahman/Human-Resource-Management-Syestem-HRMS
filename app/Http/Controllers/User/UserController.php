@@ -8,6 +8,7 @@ use App\Models\Employee;
 use App\Models\LeaveRequest;
 use App\Models\Notification;
 use App\Models\Payroll;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Illuminate\Http\Request;
@@ -50,6 +51,7 @@ class UserController extends Controller
         $selectedPayrollMonth = null;
         $selectedPayrollMonthLabel = now()->format('F Y');
         $payrollRecords = collect();
+        $latestPayroll = null;
         $totalPayslips = 0;
         $totalNetPay = 0;
         $processedPayslips = 0;
@@ -82,6 +84,7 @@ class UserController extends Controller
                 'selectedPayrollMonthValue' => null,
                 'selectedPayrollMonthLabel' => $selectedPayrollMonthLabel,
                 'payrollRecords' => $payrollRecords,
+                'latestPayroll' => $latestPayroll,
                 'totalPayslips' => $totalPayslips,
                 'totalNetPay' => $totalNetPay,
                 'processedPayslips' => $processedPayslips,
@@ -176,8 +179,14 @@ class UserController extends Controller
         $prevDate = $calendarDate->copy()->subMonth();
         $nextDate = $calendarDate->copy()->addMonth();
 
-        // Payroll
-        $payrollMonthOptions = Payroll::where('employee_id', $employee->id)
+        $payrollBaseQuery = Payroll::with('employee')
+            ->where('employee_id', $employee->id);
+
+        $latestPayroll = (clone $payrollBaseQuery)
+            ->orderByDesc('payroll_month')
+            ->first();
+
+        $payrollMonthOptions = (clone $payrollBaseQuery)
             ->orderByDesc('payroll_month')
             ->get(['payroll_month'])
             ->map(function ($item) {
@@ -205,8 +214,7 @@ class UserController extends Controller
         if ($selectedPayrollMonth) {
             $selectedPayrollMonthLabel = $selectedPayrollMonth->format('F Y');
 
-            $payrollRecords = Payroll::with('employee')
-                ->where('employee_id', $employee->id)
+            $payrollRecords = (clone $payrollBaseQuery)
                 ->whereBetween('payroll_month', [
                     $selectedPayrollMonth->copy()->startOfMonth()->toDateString(),
                     $selectedPayrollMonth->copy()->endOfMonth()->toDateString(),
@@ -214,13 +222,12 @@ class UserController extends Controller
                 ->orderByDesc('payroll_month')
                 ->get();
         } else {
-            $payrollRecords = Payroll::with('employee')
-                ->where('employee_id', $employee->id)
+            $payrollRecords = (clone $payrollBaseQuery)
                 ->orderByDesc('payroll_month')
                 ->get();
 
-            if ($payrollRecords->isNotEmpty()) {
-                $selectedPayrollMonthLabel = Carbon::parse($payrollRecords->first()->payroll_month)->format('F Y');
+            if ($latestPayroll) {
+                $selectedPayrollMonthLabel = Carbon::parse($latestPayroll->payroll_month)->format('F Y');
             }
         }
 
@@ -255,6 +262,7 @@ class UserController extends Controller
             'selectedPayrollMonthValue' => $selectedPayrollMonth ? $selectedPayrollMonth->format('Y-m') : null,
             'selectedPayrollMonthLabel' => $selectedPayrollMonthLabel,
             'payrollRecords' => $payrollRecords,
+            'latestPayroll' => $latestPayroll,
             'totalPayslips' => $totalPayslips,
             'totalNetPay' => $totalNetPay,
             'processedPayslips' => $processedPayslips,
@@ -320,6 +328,61 @@ class UserController extends Controller
         return redirect()
             ->route('dashboard', ['tab' => 'attendance'])
             ->with('success', 'Leave request submitted successfully.');
+    }
+
+    public function downloadPayslipPdf(Payroll $payroll)
+    {
+        $employee = $this->getAuthenticatedEmployee();
+        abort_unless($employee && $payroll->employee_id === $employee->id, 403);
+
+        $payroll->load('employee');
+
+        $pdf = Pdf::loadView('user.payroll.pdf.single', [
+            'payroll' => $payroll,
+            'employee' => $payroll->employee,
+            'user' => auth()->user(),
+        ])->setPaper('a4', 'portrait');
+
+        $fileName = 'payslip-' . auth()->user()->employeeID . '-' . Carbon::parse($payroll->payroll_month)->format('Y-m') . '.pdf';
+
+        return $pdf->download($fileName);
+    }
+
+    public function exportPayrollReport(Request $request)
+    {
+        $employee = $this->getAuthenticatedEmployee();
+        abort_unless($employee, 403);
+
+        $requestedPayrollMonth = $request->get('payroll_month');
+        $monthDate = $requestedPayrollMonth
+            ? Carbon::createFromFormat('Y-m', $requestedPayrollMonth)->startOfMonth()
+            : now()->startOfMonth();
+
+        $records = Payroll::with('employee')
+            ->where('employee_id', $employee->id)
+            ->whereBetween('payroll_month', [
+                $monthDate->copy()->startOfMonth()->toDateString(),
+                $monthDate->copy()->endOfMonth()->toDateString(),
+            ])
+            ->orderByDesc('payroll_month')
+            ->get();
+
+        abort_if($records->isEmpty(), 404, 'No payroll records found for the selected month.');
+
+        $pdf = Pdf::loadView('user.payroll.pdf.report', [
+            'records' => $records,
+            'employee' => $employee,
+            'user' => auth()->user(),
+            'monthDate' => $monthDate,
+            'totalNetPay' => $records->sum('net_pay'),
+            'totalAllowance' => $records->sum('allowance'),
+            'totalDeduction' => $records->sum('deduction'),
+            'totalTax' => $records->sum('tax'),
+        ])->setPaper('a4', 'portrait');
+
+        $fileName = 'payroll-report-' . auth()->user()->employeeID . '-' . $monthDate->format('Y-m') . '.pdf';
+
+        return $pdf->download($fileName);
     }
 
     private function getAuthenticatedEmployee()

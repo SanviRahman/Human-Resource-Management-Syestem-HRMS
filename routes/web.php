@@ -44,7 +44,13 @@ Route::middleware(['auth', 'role:hr'])->group(function () {
 // User
 Route::middleware(['auth', 'role:user'])->group(function () {
     Route::get('/dashboard', [UserController::class, 'index'])->name('dashboard');
-    Route::post('/leave-requests', [UserController::class, 'storeLeaveRequest'])->name('user.leave-requests.store');
+    Route::post('/leave-requests', [UserController::class, 'storeLeaveRequest'])
+        ->name('user.leave-requests.store');
+    Route::get('/payrolls/{payroll}/download', [UserController::class, 'downloadPayslipPdf'])
+        ->name('user.payrolls.download');
+
+    Route::get('/payrolls/export/report', [UserController::class, 'exportPayrollReport'])
+        ->name('user.payrolls.export');
 });
 
 // Admin + HR

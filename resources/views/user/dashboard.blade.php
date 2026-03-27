@@ -1174,7 +1174,6 @@
         </div>
 
         <!-- Payroll Section -->
-
         <div id="payrolls" class="content-section">
             <div class="payroll-toolbar">
                 <form method="GET" action="{{ route('dashboard') }}">
@@ -1195,15 +1194,34 @@
                 </form>
 
                 <div class="payroll-toolbar-actions">
+                    @if ($latestPayroll)
+                    <button type="button" class="btn btn-outline-dark payroll-action-btn js-open-payroll-modal"
+                        data-bs-toggle="modal" data-bs-target="#payrollViewModal"
+                        data-employee="{{ $latestPayroll->employee->name ?? ($employee->name ?? 'N/A') }}"
+                        data-employeeid="{{ auth()->user()->employeeID ?? 'EMPLOYEE' }}"
+                        data-department="{{ $latestPayroll->employee->department ?? '-' }}"
+                        data-month="{{ \Carbon\Carbon::parse($latestPayroll->payroll_month)->format('F Y') }}"
+                        data-basic="{{ number_format($latestPayroll->basic_salary, 2) }}"
+                        data-allowance="{{ number_format($latestPayroll->allowance, 2) }}"
+                        data-deduction="{{ number_format($latestPayroll->deduction, 2) }}"
+                        data-tax="{{ number_format($latestPayroll->tax, 2) }}"
+                        data-net="{{ number_format($latestPayroll->net_pay, 2) }}"
+                        data-status="{{ ucfirst($latestPayroll->status) }}">
+                        <span class="material-icons-round" style="font-size:18px;">receipt_long</span>
+                        Latest Payslip
+                    </button>
+                    @else
                     <button type="button" class="btn btn-outline-dark payroll-action-btn" disabled>
                         <span class="material-icons-round" style="font-size:18px;">receipt_long</span>
                         Latest Payslip
                     </button>
+                    @endif
 
-                    <button type="button" class="btn btn-outline-dark payroll-action-btn" disabled>
+                    <a href="{{ route('user.payrolls.export', ['payroll_month' => $selectedPayrollMonthValue]) }}"
+                        class="btn btn-outline-dark payroll-action-btn {{ $payrollRecords->isEmpty() ? 'disabled' : '' }}">
                         <span class="material-icons-round" style="font-size:18px;">download</span>
                         Export Report
-                    </button>
+                    </a>
                 </div>
             </div>
 
@@ -1301,11 +1319,24 @@
                                         </td>
                                         <td>
                                             <div class="d-flex gap-2">
-                                                <a href="javascript:void(0)" class="payroll-icon-btn" title="View">
+                                                <button type="button" class="payroll-icon-btn js-open-payroll-modal"
+                                                    data-bs-toggle="modal" data-bs-target="#payrollViewModal"
+                                                    data-employee="{{ $payroll->employee->name ?? ($employee->name ?? 'N/A') }}"
+                                                    data-employeeid="{{ auth()->user()->employeeID ?? 'EMPLOYEE' }}"
+                                                    data-department="{{ $payroll->employee->department ?? '-' }}"
+                                                    data-month="{{ \Carbon\Carbon::parse($payroll->payroll_month)->format('F Y') }}"
+                                                    data-basic="{{ number_format($payroll->basic_salary, 2) }}"
+                                                    data-allowance="{{ number_format($payroll->allowance, 2) }}"
+                                                    data-deduction="{{ number_format($payroll->deduction, 2) }}"
+                                                    data-tax="{{ number_format($payroll->tax, 2) }}"
+                                                    data-net="{{ number_format($payroll->net_pay, 2) }}"
+                                                    data-status="{{ ucfirst($payroll->status) }}" title="View">
                                                     <span class="material-icons-round"
                                                         style="font-size:18px;">visibility</span>
-                                                </a>
-                                                <a href="javascript:void(0)" class="payroll-icon-btn" title="Download">
+                                                </button>
+
+                                                <a href="{{ route('user.payrolls.download', $payroll->id) }}"
+                                                    class="payroll-icon-btn" title="Download PDF">
                                                     <span class="material-icons-round"
                                                         style="font-size:18px;">download</span>
                                                 </a>
@@ -1326,6 +1357,74 @@
                 </div>
             </div>
         </div>
+
+        <!-- Payroll View Modal -->
+        <div class="modal fade" id="payrollViewModal" tabindex="-1" aria-labelledby="payrollViewModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header modal-header-custom border-0">
+                        <div>
+                            <h5 class="modal-title fw-bold mb-1" id="payrollViewModalLabel">Payslip Preview</h5>
+                            <p class="mb-0 small text-white-50">Detailed payroll information.</p>
+                        </div>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                            aria-label="Close"></button>
+                    </div>
+
+                    <div class="modal-body p-4">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="border rounded-3 p-3 h-100">
+                                    <div class="text-muted small mb-1">Employee</div>
+                                    <div class="fw-semibold" id="modalPayrollEmployee">-</div>
+                                    <div class="text-muted small mt-2">Employee ID</div>
+                                    <div class="fw-semibold" id="modalPayrollEmployeeId">-</div>
+                                    <div class="text-muted small mt-2">Department</div>
+                                    <div class="fw-semibold" id="modalPayrollDepartment">-</div>
+                                    <div class="text-muted small mt-2">Payroll Month</div>
+                                    <div class="fw-semibold" id="modalPayrollMonth">-</div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="border rounded-3 p-3 h-100">
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>Basic Salary</span>
+                                        <strong id="modalPayrollBasic">$0.00</strong>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>Allowance</span>
+                                        <strong id="modalPayrollAllowance">$0.00</strong>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>Deduction</span>
+                                        <strong id="modalPayrollDeduction">$0.00</strong>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>Tax</span>
+                                        <strong id="modalPayrollTax">$0.00</strong>
+                                    </div>
+                                    <hr>
+                                    <div class="d-flex justify-content-between">
+                                        <span class="fw-semibold">Net Pay</span>
+                                        <strong id="modalPayrollNet">$0.00</strong>
+                                    </div>
+                                    <div class="mt-3">
+                                        <span class="status-pill" id="modalPayrollStatus">-</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer border-0 px-4 pb-4">
+                        <button type="button" class="btn btn-light px-4 rounded-pill"
+                            data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>>
 
         <!-- Notifications Section -->
         <div id="notifications" class="content-section">
@@ -1634,7 +1733,7 @@
             });
         }
 
-        @if($errors-> any() && old('show_leave_modal'))
+        @if($errors->any() && old('show_leave_modal'))
         openAttendanceTab();
         const leaveModalEl = document.getElementById('applyLeaveModal');
         if (leaveModalEl) {
@@ -1642,6 +1741,37 @@
             leaveModal.show();
         }
         @endif
+    });
+    </script>
+    <!-- Payroll Scripts -->
+    <script>
+    document.querySelectorAll('.js-open-payroll-modal').forEach(button => {
+        button.addEventListener('click', function() {
+            const employee = this.dataset.employee || '-';
+            const employeeId = this.dataset.employeeid || '-';
+            const department = this.dataset.department || '-';
+            const month = this.dataset.month || '-';
+            const basic = this.dataset.basic || '0.00';
+            const allowance = this.dataset.allowance || '0.00';
+            const deduction = this.dataset.deduction || '0.00';
+            const tax = this.dataset.tax || '0.00';
+            const net = this.dataset.net || '0.00';
+            const status = this.dataset.status || '-';
+
+            document.getElementById('modalPayrollEmployee').textContent = employee;
+            document.getElementById('modalPayrollEmployeeId').textContent = employeeId;
+            document.getElementById('modalPayrollDepartment').textContent = department;
+            document.getElementById('modalPayrollMonth').textContent = month;
+            document.getElementById('modalPayrollBasic').textContent = '$' + basic;
+            document.getElementById('modalPayrollAllowance').textContent = '$' + allowance;
+            document.getElementById('modalPayrollDeduction').textContent = '$' + deduction;
+            document.getElementById('modalPayrollTax').textContent = '$' + tax;
+            document.getElementById('modalPayrollNet').textContent = '$' + net;
+
+            const statusEl = document.getElementById('modalPayrollStatus');
+            statusEl.textContent = status;
+            statusEl.className = 'status-pill ' + status.toLowerCase();
+        });
     });
     </script>
 </body>
